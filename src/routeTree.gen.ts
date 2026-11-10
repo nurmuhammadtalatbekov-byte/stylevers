@@ -11,6 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashRouteImport } from './routes/_dash'
+import { Route as DashAiRouteImport } from './routes/_dash.ai'
+import { Route as DashCollectionsRouteImport } from './routes/_dash.collections'
+import { Route as DashDashboardRouteImport } from './routes/_dash.dashboard'
+import { Route as DashInspirationRouteImport } from './routes/_dash.inspiration'
+import { Route as DashMarketplaceRouteImport } from './routes/_dash.marketplace'
+import { Route as DashPortfolioRouteImport } from './routes/_dash.portfolio'
+import { Route as DashSettingsRouteImport } from './routes/_dash.settings'
 import { Route as DashStudioRouteImport } from './routes/_dash.studio'
 
 const IndexRoute = IndexRouteImport.update({
@@ -22,6 +29,41 @@ const DashRoute = DashRouteImport.update({
   id: '/_dash',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashAiRoute = DashAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashCollectionsRoute = DashCollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashDashboardRoute = DashDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashInspirationRoute = DashInspirationRouteImport.update({
+  id: '/inspiration',
+  path: '/inspiration',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashMarketplaceRoute = DashMarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashPortfolioRoute = DashPortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashSettingsRoute = DashSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashRoute,
+} as any)
 const DashStudioRoute = DashStudioRouteImport.update({
   id: '/studio',
   path: '/studio',
@@ -30,24 +72,74 @@ const DashStudioRoute = DashStudioRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof DashAiRoute
+  '/collections': typeof DashCollectionsRoute
+  '/dashboard': typeof DashDashboardRoute
+  '/inspiration': typeof DashInspirationRoute
+  '/marketplace': typeof DashMarketplaceRoute
+  '/portfolio': typeof DashPortfolioRoute
+  '/settings': typeof DashSettingsRoute
   '/studio': typeof DashStudioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof DashAiRoute
+  '/collections': typeof DashCollectionsRoute
+  '/dashboard': typeof DashDashboardRoute
+  '/inspiration': typeof DashInspirationRoute
+  '/marketplace': typeof DashMarketplaceRoute
+  '/portfolio': typeof DashPortfolioRoute
+  '/settings': typeof DashSettingsRoute
   '/studio': typeof DashStudioRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dash': typeof DashRouteWithChildren
+  '/_dash/ai': typeof DashAiRoute
+  '/_dash/collections': typeof DashCollectionsRoute
+  '/_dash/dashboard': typeof DashDashboardRoute
+  '/_dash/inspiration': typeof DashInspirationRoute
+  '/_dash/marketplace': typeof DashMarketplaceRoute
+  '/_dash/portfolio': typeof DashPortfolioRoute
+  '/_dash/settings': typeof DashSettingsRoute
   '/_dash/studio': typeof DashStudioRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/studio'
+  fullPaths:
+    | '/'
+    | '/ai'
+    | '/collections'
+    | '/dashboard'
+    | '/inspiration'
+    | '/marketplace'
+    | '/portfolio'
+    | '/settings'
+    | '/studio'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/studio'
-  id: '__root__' | '/' | '/_dash' | '/_dash/studio'
+  to:
+    | '/'
+    | '/ai'
+    | '/collections'
+    | '/dashboard'
+    | '/inspiration'
+    | '/marketplace'
+    | '/portfolio'
+    | '/settings'
+    | '/studio'
+  id:
+    | '__root__'
+    | '/'
+    | '/_dash'
+    | '/_dash/ai'
+    | '/_dash/collections'
+    | '/_dash/dashboard'
+    | '/_dash/inspiration'
+    | '/_dash/marketplace'
+    | '/_dash/portfolio'
+    | '/_dash/settings'
+    | '/_dash/studio'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -71,6 +163,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dash/ai': {
+      id: '/_dash/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof DashAiRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/collections': {
+      id: '/_dash/collections'
+      path: '/collections'
+      fullPath: '/collections'
+      preLoaderRoute: typeof DashCollectionsRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/dashboard': {
+      id: '/_dash/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashDashboardRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/inspiration': {
+      id: '/_dash/inspiration'
+      path: '/inspiration'
+      fullPath: '/inspiration'
+      preLoaderRoute: typeof DashInspirationRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/marketplace': {
+      id: '/_dash/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof DashMarketplaceRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/portfolio': {
+      id: '/_dash/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof DashPortfolioRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/settings': {
+      id: '/_dash/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof DashSettingsRouteImport
+      parentRoute: typeof DashRoute
+    }
     '/_dash/studio': {
       id: '/_dash/studio'
       path: '/studio'
@@ -82,10 +223,24 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashRouteChildren {
+  DashAiRoute: typeof DashAiRoute
+  DashCollectionsRoute: typeof DashCollectionsRoute
+  DashDashboardRoute: typeof DashDashboardRoute
+  DashInspirationRoute: typeof DashInspirationRoute
+  DashMarketplaceRoute: typeof DashMarketplaceRoute
+  DashPortfolioRoute: typeof DashPortfolioRoute
+  DashSettingsRoute: typeof DashSettingsRoute
   DashStudioRoute: typeof DashStudioRoute
 }
 
 const DashRouteChildren: DashRouteChildren = {
+  DashAiRoute: DashAiRoute,
+  DashCollectionsRoute: DashCollectionsRoute,
+  DashDashboardRoute: DashDashboardRoute,
+  DashInspirationRoute: DashInspirationRoute,
+  DashMarketplaceRoute: DashMarketplaceRoute,
+  DashPortfolioRoute: DashPortfolioRoute,
+  DashSettingsRoute: DashSettingsRoute,
   DashStudioRoute: DashStudioRoute,
 }
 

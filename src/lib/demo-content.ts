@@ -31,6 +31,6 @@ const IMG: Record<string, string> = {
   Streetwear: street, Luxury: hero, Minimalism: minimal, "Avant-garde": future, Casual: minimal, "Haute couture": couture, Futuristic: future,
 };
 export const INSPIRATION: Inspiration[] = CATS.flatMap((c, i) => [
-  { id: `${i}a`, title: `${c} study I`, category: c, image: IMG[c], tags: [c.toLowerCase(), "editorial"] },
-  { id: `${i}b`, title: `${c} study II`, category: c, image: IMG[c], tags: [c.toLowerCase(), "lookbook"] },
+  { id: `${i}a`, title: `${c} study I`, category: c, image: IMG[c] ?? hero, tags: [c.toLowerCase(), "editorial"] },
+  { id: `${i}b`, title: `${c} study II`, category: c, image: IMG[c] ?? hero, tags: [c.toLowerCase(), "lookbook"] },
 ]);

@@ -111,7 +111,7 @@ function Top({ d, sleeve, bottom, hood, open, collar }: { d: Design; sleeve: num
     const pts: [number, number][] = [];
     const prof: [number, number][] = [[0.105, 1.5], [0.2, 1.43], [0.17, 1.3], [0.16, 1.12], [0.185, 1.0], [0.18, 0.9], [0.18, 0.7], [0.18, 0.5], [0.18, 0.3]];
     for (const [r, y] of prof) if (y >= by) pts.push([r + 0.018, y]);
-    const last = pts[pts.length - 1];
+    const last = pts[pts.length - 1] ?? [0.2, by];
     pts.push([last[0] + flare + 0.01, by]);
     return lathe(pts);
   }, [by, flare]);

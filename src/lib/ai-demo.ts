@@ -45,7 +45,7 @@ export function interpret(prompt: string): Interpretation {
     .map((k) => ({ k, i: p.indexOf(k) }))
     .filter((x) => x.i >= 0)
     .sort((a, b) => a.i - b.i)
-    .map((x) => COLORS[x.k]);
+    .map((x) => COLORS[x.k] ?? "#15151a");
   const colors = [...new Set(found)];
   if (colors.length === 0) colors.push("#15151a", "#7c3aed");
   if (colors.length === 1) colors.push(colors[0] === "#f4f2ee" ? "#0d0d10" : "#f4f2ee");
