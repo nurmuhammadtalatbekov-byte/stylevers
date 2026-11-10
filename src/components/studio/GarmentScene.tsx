@@ -2,7 +2,8 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import * as THREE from "three";
-type OrbitImpl = React.ComponentRef<typeof OrbitControls>;
+import type { ComponentRef } from "react";
+type OrbitImpl = ComponentRef<typeof OrbitControls>;
 import { MATERIAL_PROPS, type Design, type PartStyle } from "@/lib/fashion";
 
 export type View = "front" | "back" | "left" | "right";
