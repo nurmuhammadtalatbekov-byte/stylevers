@@ -12,7 +12,7 @@ import { actions } from "@/lib/store";
 
 export const Route = createFileRoute("/_dash/studio")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>): { id?: string } => (typeof s.id === "string" ? { id: s.id } : {}),
+  validateSearch: (s: Record<string, unknown>): { id?: string } => (typeof s["id"] === "string" ? { id: s["id"] } : {}),
   head: () => ({
     meta: [
       { title: "3D Design Studio — STYLEVERSE" },
@@ -73,7 +73,7 @@ function Studio() {
   }
   function onUpload(file?: File) {
     if (!file) return;
-    if (file.size > 1.5e6) return toast.error("Please use an image under 1.5 MB");
+    if (file.size > 1.5e6) { toast.error("Please use an image under 1.5 MB"); return; }
     const r = new FileReader();
     r.onload = () => updatePart({ pattern: "custom", customTexture: String(r.result) });
     r.readAsDataURL(file);

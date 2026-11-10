@@ -40,8 +40,8 @@ export interface Design {
   fit: number; // 0.85 – 1.25
   length: number; // 0.8 – 1.2
   parts: Record<PartId, PartStyle>;
-  collectionId?: string;
-  preview?: string;
+  collectionId?: string | undefined;
+  preview?: string | undefined;
   updatedAt: number;
 }
 
@@ -72,7 +72,7 @@ export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a
 export function hexToRgb(hex: string): [number, number, number] {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) return [0, 0, 0];
-  const n = parseInt(m[1], 16);
+  const n = parseInt(m[1] ?? "0", 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 export function rgbToHex(r: number, g: number, b: number) {
