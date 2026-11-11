@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { GarmentScene, type SceneHandle, type View } from "@/components/studio/GarmentScene";
 import { Button } from "@/components/ui/button";
 import {
-  GARMENTS, GARMENT_LABEL, MATERIALS, PALETTE, PART_LABEL, PATTERNS, hexToRgb, isHex, newDesign, rgbToHex,
+  COLLARS, GARMENTS, GARMENT_LABEL, SLEEVES, TOPS, MATERIALS, PALETTE, PART_LABEL, PATTERNS, hexToRgb, isHex, newDesign, rgbToHex,
   type Design, type PartId, type PartStyle,
 } from "@/lib/fashion";
 import { actions } from "@/lib/store";
@@ -39,6 +39,7 @@ function Studio() {
   });
   const [part, setPart] = useState<PartId>("body");
   const [dirty, setDirty] = useState(false);
+  const [spinning, setSpinning] = useState(false);
 
   useEffect(() => {
     const saved = id ? actions.getDesign(id) : undefined;
@@ -71,6 +72,17 @@ function Studio() {
     const blob = new Blob([JSON.stringify({ ...design, preview: undefined }, null, 2)], { type: "application/json" });
     download(URL.createObjectURL(blob), `${slug(design.name)}.styleverse.json`);
   }
+  function importJson(file?: File) {
+    if (!file) return;
+    file.text().then((t) => {
+      try {
+        const d = JSON.parse(t) as Design;
+        if (!d.parts?.body || !GARMENTS.includes(d.garment)) throw new Error();
+        setDesign({ ...newDesign(d.garment), ...d, id: newDesign().id }); setDirty(true);
+        toast.success("Design opened — save to keep it");
+      } catch { toast.error("That file isn't a STYLEVERSE design"); }
+    });
+  }
   function onUpload(file?: File) {
     if (!file) return;
     if (file.size > 1.5e6) { toast.error("Please use an image under 1.5 MB"); return; }
@@ -87,6 +99,7 @@ function Studio() {
           {(["front", "back", "left", "right"] as View[]).map((v) => (
             <button key={v} onClick={() => scene.current?.setView(v)} className="rounded-lg px-3 py-1.5 text-xs capitalize hover:bg-secondary">{v}</button>
           ))}
+          <button aria-pressed={spinning} onClick={() => { const n = !spinning; setSpinning(n); scene.current?.spin(n); }} className={`rounded-lg px-3 py-1.5 text-xs ${spinning ? "bg-accent" : "hover:bg-secondary"}`}>360°</button>
         </div>
         <div className="glass absolute right-3 top-3 flex flex-col gap-1 rounded-xl p-1">
           <button aria-label="Zoom in" onClick={() => scene.current?.zoom(0.8)} className="grid size-8 place-items-center rounded-lg hover:bg-secondary"><Plus className="size-4" /></button>
@@ -106,6 +119,10 @@ function Studio() {
             <Button size="sm" variant="outline" onClick={() => { update({ parts: newDesign().parts, fit: 1, length: 1 }); scene.current?.reset(); }}><RotateCcw /> Reset</Button>
             <Button size="sm" variant="ghost" onClick={exportPng}><Download /> PNG</Button>
             <Button size="sm" variant="ghost" onClick={exportJson}><FileJson /> File</Button>
+            <label className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-md px-3 text-xs hover:bg-secondary">
+              <Upload className="size-3.5" /> Open file
+              <input type="file" accept=".json,application/json" className="sr-only" onChange={(e) => importJson(e.target.files?.[0])} />
+            </label>
           </div>
         </div>
 
@@ -118,6 +135,17 @@ function Studio() {
           <Slider label="Fit" value={design.fit} min={0.85} max={1.25} onChange={(fit) => update({ fit })} fmt={(v) => (v < 0.95 ? "Slim" : v > 1.1 ? "Oversized" : "Regular")} />
           <Slider label="Length" value={design.length} min={0.8} max={1.2} onChange={(length) => update({ length })} fmt={(v) => `${Math.round(v * 100)}%`} />
         </Section>
+
+        {TOPS.includes(design.garment) && (
+          <Section title="Sleeves & collar">
+            <div className="grid grid-cols-5 gap-1.5">
+              {SLEEVES.map((x) => <Chip key={x} active={(design.sleeve ?? "auto") === x} onClick={() => update({ sleeve: x })}>{x}</Chip>)}
+            </div>
+            <div className="grid grid-cols-5 gap-1.5">
+              {COLLARS.map((x) => <Chip key={x} active={(design.collar ?? "auto") === x} onClick={() => update({ collar: x })}>{x}</Chip>)}
+            </div>
+          </Section>
+        )}
 
         <Section title="Garment part">
           <div className="grid grid-cols-3 gap-1.5">

@@ -4,10 +4,10 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "rea
 import * as THREE from "three";
 import type { ComponentRef } from "react";
 type OrbitImpl = ComponentRef<typeof OrbitControls>;
-import { MATERIAL_PROPS, type Design, type PartStyle } from "@/lib/fashion";
+import { MATERIAL_PROPS, SLEEVE_LEN, type Design, type PartStyle } from "@/lib/fashion";
 
 export type View = "front" | "back" | "left" | "right";
-export interface SceneHandle { setView: (v: View) => void; reset: () => void; zoom: (f: number) => void; snapshot: () => string }
+export interface SceneHandle { setView: (v: View) => void; reset: () => void; zoom: (f: number) => void; snapshot: () => string; spin: (on: boolean) => void }
 
 const TARGET = new THREE.Vector3(0, 1.05, 0);
 const VIEWS: Record<View, [number, number, number]> = {
@@ -103,8 +103,13 @@ function Mannequin() {
 }
 
 /* ---------- garments ---------- */
-function Top({ d, sleeve, bottom, hood, open, collar }: { d: Design; sleeve: number; bottom: number; hood?: boolean; open?: boolean; collar?: boolean }) {
+function Top({ d, sleeve: baseSleeve, bottom, hood: baseHood, open, collar: baseCollar }: { d: Design; sleeve: number; bottom: number; hood?: boolean; open?: boolean; collar?: boolean }) {
   const f = d.fit;
+  const sleeve = d.sleeve && d.sleeve !== "auto" ? SLEEVE_LEN[d.sleeve] : baseSleeve;
+  const cs = d.collar ?? "auto";
+  const hood = cs === "auto" ? baseHood : cs === "hood";
+  const collar = cs === "auto" ? baseCollar : cs === "stand";
+  const noCollar = cs === "none";
   const by = 1.5 - (1.5 - bottom) * d.length;
   const flare = bottom < 0.8 ? 0.12 * (0.8 - bottom) * 3 : 0;
   const body = useMemo(() => {
@@ -129,7 +134,8 @@ function Top({ d, sleeve, bottom, hood, open, collar }: { d: Design; sleeve: num
           </mesh>
         </group>
       ))}
-      <mesh position={[0, 1.495, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.1, collar ? 0.022 : 0.012, 10, 40]} /><Fabric style={d.parts.trim} /></mesh>
+      {!noCollar && <mesh position={[0, 1.495, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.1, collar ? 0.022 : 0.012, 10, 40]} /><Fabric style={d.parts.trim} /></mesh>}
+      {collar && <mesh position={[0, 1.53, 0]}><cylinderGeometry args={[0.1, 0.11, 0.07, 40, 1, true]} /><Fabric style={d.parts.trim} /></mesh>}
       <mesh position={[0, by + 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.2 + flare + 0.01, 0.01, 8, 48]} /><Fabric style={d.parts.trim} /></mesh>
       {open && <mesh position={[0, (1.47 + by) / 2, 0.165 + flare / 2]}><boxGeometry args={[0.03, 1.47 - by, 0.02]} /><Fabric style={d.parts.trim} /></mesh>}
       {hood && (
@@ -189,6 +195,7 @@ const Rig = forwardRef<SceneHandle>(function Rig(_, ref) {
     setView(v) { camera.position.set(...VIEWS[v]); controls.current?.target.copy(TARGET); controls.current?.update(); },
     reset() { camera.position.set(...VIEWS.front); controls.current?.target.copy(TARGET); controls.current?.update(); },
     zoom(f) { const dir = camera.position.clone().sub(controls.current!.target); dir.multiplyScalar(f); camera.position.copy(controls.current!.target).add(dir); controls.current?.update(); },
+    spin(on) { if (controls.current) { controls.current.autoRotate = on; controls.current.autoRotateSpeed = 3; } },
     snapshot() { return gl.domElement.toDataURL("image/png"); },
   }), [camera, gl]);
   return <OrbitControls ref={controls} target={TARGET} enablePan minDistance={1.2} maxDistance={6} maxPolarAngle={Math.PI * 0.55} makeDefault />;

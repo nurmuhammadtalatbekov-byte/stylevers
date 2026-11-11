@@ -22,6 +22,13 @@ export const MATERIAL_PROPS: Record<MaterialType, { roughness: number; metalness
 export const PATTERNS = ["solid", "stripes", "floral", "geometric", "abstract", "custom"] as const;
 export type PatternType = (typeof PATTERNS)[number];
 
+export const SLEEVES = ["auto", "none", "short", "elbow", "long"] as const;
+export type SleeveStyle = (typeof SLEEVES)[number];
+export const SLEEVE_LEN: Record<Exclude<SleeveStyle, "auto">, number> = { none: 0, short: 0.2, elbow: 0.36, long: 0.58 };
+export const COLLARS = ["auto", "none", "crew", "stand", "hood"] as const;
+export type CollarStyle = (typeof COLLARS)[number];
+export const TOPS: readonly string[] = ["tshirt", "shirt", "hoodie", "jacket", "coat"];
+
 export type PartId = "body" | "sleeves" | "trim";
 export const PART_LABEL: Record<PartId, string> = { body: "Main body", sleeves: "Sleeves / legs", trim: "Trim & details" };
 
@@ -40,6 +47,8 @@ export interface Design {
   fit: number; // 0.85 – 1.25
   length: number; // 0.8 – 1.2
   parts: Record<PartId, PartStyle>;
+  sleeve?: SleeveStyle | undefined;
+  collar?: CollarStyle | undefined;
   collectionId?: string | undefined;
   preview?: string | undefined;
   updatedAt: number;

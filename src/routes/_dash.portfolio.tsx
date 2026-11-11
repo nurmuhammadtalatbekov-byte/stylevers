@@ -1,5 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { SimplePage } from "@/components/SimplePage";
+import { DesignCard, Empty } from "@/components/DesignCard";
+import { useStore } from "@/lib/store";
+
+function Portfolio() {
+  const { designs } = useStore();
+  return (
+    <SimplePage title="My Portfolio">
+      {designs.length === 0 ? (
+        <Empty title="No saved designs yet"><Link to="/studio" className="text-primary underline">Create one in the 3D studio</Link></Empty>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">{designs.map((d) => <DesignCard key={d.id} d={d} />)}</div>
+      )}
+    </SimplePage>
+  );
+}
 
 export const Route = createFileRoute("/_dash/portfolio")({
   head: () => ({
@@ -10,5 +26,5 @@ export const Route = createFileRoute("/_dash/portfolio")({
       { property: "og:description", content: "My Portfolio in STYLEVERSE." },
     ],
   }),
-  component: () => <SimplePage title="My Portfolio" />,
+  component: Portfolio,
 });
