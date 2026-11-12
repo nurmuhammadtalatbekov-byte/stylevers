@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, Box, FolderHeart, Home, Images, LayoutGrid, Menu, Settings, Sparkles, Store, UserRound, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 
 export const NAV = [
@@ -49,15 +50,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Logo />
         {nav}
         <div className="glass mt-auto rounded-xl p-4 text-xs text-muted-foreground">
-          <p className="mb-1 font-semibold text-foreground">Demo workspace</p>
-          Designs are saved on this device. Accounts & cloud sync come next.
+          <p className="mb-1 font-semibold text-foreground">STYLEVERSE Atelier</p>
+          <Link to="/settings" className="text-primary">Workspace & cloud backups</Link>
         </div>
       </aside>
 
       {open && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur lg:hidden" onClick={() => setOpen(false)}>
           <aside className="glass flex h-full w-72 flex-col gap-8 p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between"><Logo /><button aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></button></div>
+            <div className="flex items-center justify-between"><Logo /><Button variant="ghost" size="icon" aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></Button></div>
             {nav}
           </aside>
         </div>
@@ -65,13 +66,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="glass sticky top-0 z-40 flex h-16 items-center gap-3 border-x-0 border-t-0 px-4 md:px-6">
-          <button className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu className="size-5" /></button>
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu className="size-5" /></Button>
           <h1 className="truncate font-display text-base font-semibold">{current}</h1>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative">
-              <button aria-label="Notifications" onClick={() => setNotif((v) => !v)} className="grid size-9 place-items-center rounded-full hover:bg-secondary">
+              <Button variant="ghost" size="icon" aria-label="Notifications" onClick={() => setNotif((v) => !v)} className="grid size-9 place-items-center rounded-full hover:bg-secondary">
                 <Bell className="size-4" />
-              </button>
+              </Button>
               {notif && (
                 <div className="glass absolute right-0 top-11 w-72 rounded-xl p-4 text-sm">
                   <p className="eyebrow mb-2">Notifications</p>

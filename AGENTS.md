@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application rules
+- Keep garment data and import validation independent of React and Three.js so saved designs remain portable.
+- Preserve device persistence; cloud workspace backups are owner-scoped and restored by non-destructive merge, never automatic replacement.
+- Keep the existing raw HTTP Responses client and model for brief generation; render Markdown without enabling raw HTML.
+- Share presentation tokens through global CSS and use the existing Button for studio controls.

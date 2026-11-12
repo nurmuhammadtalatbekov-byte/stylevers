@@ -1,6 +1,6 @@
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, OrbitControls } from "@react-three/drei";
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { ComponentRef } from "react";
 type OrbitImpl = ComponentRef<typeof OrbitControls>;
@@ -11,18 +11,19 @@ export interface SceneHandle { setView: (v: View) => void; reset: () => void; zo
 
 const TARGET = new THREE.Vector3(0, 1.05, 0);
 const VIEWS: Record<View, [number, number, number]> = {
-  front: [0, 1.25, 3.1], back: [0, 1.25, -3.1], left: [-3.1, 1.25, 0], right: [3.1, 1.25, 0],
+  front: [0, 1.25, 3.8], back: [0, 1.25, -3.8], left: [-3.8, 1.25, 0], right: [3.8, 1.25, 0],
 };
 
 /* ---------- textures ---------- */
 const texCache = new Map<string, THREE.Texture>();
 function patternTexture(s: PartStyle, weave: number): THREE.Texture {
-  const key = `${s.pattern}|${s.color}|${s.accent}|${weave}|${s.pattern === "custom" ? s.customTexture?.slice(-64) : ""}`;
+  const key = `${s.pattern}|${s.color}|${s.accent}|${weave}|${s.pattern === "custom" ? s.customTexture : ""}`;
   const hit = texCache.get(key);
   if (hit) return hit;
   const c = document.createElement("canvas");
   c.width = c.height = 256;
-  const g = c.getContext("2d")!;
+  const g = c.getContext("2d");
+  if (!g) throw new Error("Fabric textures are unavailable in this browser.");
   g.fillStyle = s.color; g.fillRect(0, 0, 256, 256);
   g.fillStyle = s.accent; g.strokeStyle = s.accent;
   if (s.pattern === "stripes") for (let x = 0; x < 256; x += 32) g.fillRect(x, 0, 12, 256);
@@ -70,7 +71,7 @@ function Fabric({ style }: { style: PartStyle }) {
   return (
     <meshPhysicalMaterial
       map={map} roughness={m.roughness} metalness={m.metalness} sheen={m.sheen}
-      sheenColor={style.accent} clearcoat={m.clearcoat} side={THREE.DoubleSide}
+      sheenColor={style.color} clearcoat={m.clearcoat} transparent={m.opacity !== undefined} opacity={m.opacity ?? 1} side={THREE.DoubleSide}
     />
   );
 }
@@ -90,8 +91,8 @@ function Mannequin() {
       <mesh position={[0, 1.58, 0]} castShadow><cylinderGeometry args={[0.045, 0.05, 0.1, 24]} />{SKIN}</mesh>
       <mesh position={[0, 1.72, 0.01]} scale={[0.9, 1.15, 1]} castShadow><sphereGeometry args={[0.1, 32, 32]} />{SKIN}</mesh>
       {[-1, 1].map((s) => (
-        <group key={s} position={[s * 0.205, 1.42, 0]} rotation={[0, 0, s * 0.13]}>
-          <mesh position={[0, -0.29, 0]} castShadow><capsuleGeometry args={[0.042, 0.52, 8, 16]} />{SKIN}</mesh>
+        <group key={s} position={[s * 0.205, 1.42, 0]} rotation={[0, 0, s * 0.10]}>
+          <mesh position={[0, -0.29, 0]} castShadow><capsuleGeometry args={[0.035, 0.48, 8, 16]} />{SKIN}</mesh>
         </group>
       ))}
       {[-1, 1].map((s) => (
@@ -125,7 +126,7 @@ function Top({ d, sleeve: baseSleeve, bottom, hood: baseHood, open, collar: base
     <group scale={[f, 1, f]}>
       <mesh geometry={body} castShadow><Fabric style={d.parts.body} /></mesh>
       {sl > 0 && [-1, 1].map((s) => (
-        <group key={s} position={[s * 0.205, 1.42, 0]} rotation={[0, 0, s * 0.13]}>
+        <group key={s} position={[s * 0.205, 1.42, 0]} rotation={[0, 0, s * 0.10]}>
           <mesh position={[0, -sl / 2 + 0.02, 0]} castShadow>
             <cylinderGeometry args={[0.058 * f, 0.068 * f, sl, 24, 1, true]} /><Fabric style={d.parts.sleeves} />
           </mesh>
@@ -194,35 +195,42 @@ const Rig = forwardRef<SceneHandle>(function Rig(_, ref) {
   useImperativeHandle(ref, () => ({
     setView(v) { camera.position.set(...VIEWS[v]); controls.current?.target.copy(TARGET); controls.current?.update(); },
     reset() { camera.position.set(...VIEWS.front); controls.current?.target.copy(TARGET); controls.current?.update(); },
-    zoom(f) { const dir = camera.position.clone().sub(controls.current!.target); dir.multiplyScalar(f); camera.position.copy(controls.current!.target).add(dir); controls.current?.update(); },
+    zoom(f) { const c = controls.current; if (!c) return; const dir = camera.position.clone().sub(c.target); dir.setLength(THREE.MathUtils.clamp(dir.length() * f, 1.2, 6)); camera.position.copy(c.target).add(dir); c.update(); },
     spin(on) { if (controls.current) { controls.current.autoRotate = on; controls.current.autoRotateSpeed = 3; } },
     snapshot() { return gl.domElement.toDataURL("image/png"); },
   }), [camera, gl]);
-  return <OrbitControls ref={controls} target={TARGET} enablePan minDistance={1.2} maxDistance={6} maxPolarAngle={Math.PI * 0.55} makeDefault />;
+  return <OrbitControls ref={controls} target={TARGET} enableDamping dampingFactor={0.08} enablePan minDistance={1.2} maxDistance={6} maxPolarAngle={Math.PI * 0.55} makeDefault />;
 });
+
+function Ready({ onReady }: { onReady: () => void }) {
+  const frames = useRef(0);
+  useFrame(() => { if (++frames.current === 2) onReady(); });
+  return null;
+}
 
 export const GarmentScene = forwardRef<SceneHandle, { design: Design }>(function GarmentScene({ design }, ref) {
   const wrap = useRef<HTMLDivElement>(null);
-  useEffect(() => { wrap.current?.setAttribute("data-scene-ready", "true"); }, []);
+  
   return (
     <div ref={wrap} className="h-full w-full">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: VIEWS.front, fov: 35 }} gl={{ preserveDrawingBuffer: true, antialias: true }}>
-        <color attach="background" args={["#121216"]} />
-        <fog attach="fog" args={["#121216", 6, 12]} />
-        <ambientLight intensity={0.25} />
+      <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={[1, 1.5]} camera={{ position: VIEWS.front, fov: 35 }} gl={{ preserveDrawingBuffer: true, antialias: true }}>
+        <Ready onReady={() => wrap.current?.setAttribute("data-scene-ready", "true")} />
+        <color attach="background" args={["#e2e5e3"]} />
+        <fog attach="fog" args={["#e2e5e3", 6, 12]} />
+        <ambientLight intensity={0.65} />
         <directionalLight position={[2.5, 4, 3]} intensity={2.2} castShadow shadow-mapSize={[1024, 1024]} />
-        <spotLight position={[-3, 3, -2]} intensity={25} color="#8b5cf6" angle={0.6} penumbra={1} />
-        <spotLight position={[3, 2, -3]} intensity={15} color="#22d3ee" angle={0.6} penumbra={1} />
+        <spotLight position={[-3, 3, -2]} intensity={25} color="#ffffff" angle={0.6} penumbra={1} />
+        <spotLight position={[3, 2, -3]} intensity={15} color="#d9e7eb" angle={0.6} penumbra={1} />
         <Environment resolution={128}>
           <Lightformer intensity={1.6} position={[0, 5, 0]} scale={[10, 10, 1]} rotation-x={Math.PI / 2} />
-          <Lightformer intensity={0.8} color="#a78bfa" position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} />
-          <Lightformer intensity={0.6} color="#67e8f9" position={[5, 1, 1]} rotation-y={-Math.PI / 2} scale={[20, 2, 1]} />
+          <Lightformer intensity={0.8} color="#ffffff" position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} />
+          <Lightformer intensity={0.6} color="#d9e7eb" position={[5, 1, 1]} rotation-y={-Math.PI / 2} scale={[20, 2, 1]} />
         </Environment>
         <group>
           <Mannequin />
           <Garment d={design} />
         </group>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[6, 64]} /><meshStandardMaterial color="#17171c" roughness={0.9} /></mesh>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[6, 64]} /><meshStandardMaterial color="#d6dbd8" roughness={0.9} /></mesh>
         <ContactShadows position={[0, 0.001, 0]} opacity={0.6} scale={4} blur={2.4} far={2} />
         <Rig ref={ref} />
       </Canvas>

@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 import type { Design } from "./fashion";
 
 export interface Collection { id: string; name: string; createdAt: number }
-interface State { designs: Design[]; collections: Collection[]; likes: string[]; favorites: string[] }
+export interface State { designs: Design[]; collections: Collection[]; likes: string[]; favorites: string[] }
 
 const KEY = "styleverse:v1";
 const EMPTY: State = { designs: [], collections: [], likes: [], favorites: [] };
@@ -20,9 +20,9 @@ function load() {
   } catch { /* ignore corrupt storage */ }
 }
 function commit(next: State) {
-  state = next;
   try { localStorage.setItem(KEY, JSON.stringify(next)); }
   catch { throw new Error("Storage is full — try removing custom textures or old designs."); }
+  state = next;
   subs.forEach((f) => f());
 }
 
@@ -37,6 +37,18 @@ export function useStore(): State {
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
 export const actions = {
+  snapshot() { load(); return structuredClone(state); },
+  mergeWorkspace(incoming: State) {
+    load();
+    const designs = new Map(state.designs.map((d) => [d.id, d]));
+    for (const d of incoming.designs) {
+      const current = designs.get(d.id);
+      if (!current || d.updatedAt > current.updatedAt) designs.set(d.id, d);
+    }
+    const collections = new Map(state.collections.map((c) => [c.id, c]));
+    for (const c of incoming.collections) if (!collections.has(c.id)) collections.set(c.id, c);
+    commit({ designs: [...designs.values()], collections: [...collections.values()], likes: [...new Set([...state.likes, ...incoming.likes])], favorites: [...new Set([...state.favorites, ...incoming.favorites])] });
+  },
   getDesign(id: string) { load(); return state.designs.find((d) => d.id === id); },
   saveDesign(d: Design) {
     load();

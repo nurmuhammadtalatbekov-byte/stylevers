@@ -5,12 +5,14 @@ const Input = z.object({ concept: z.string().trim().min(5).max(2000) });
 
 const SYSTEM = `You are a senior fashion design director. Turn the designer's rough concept into a polished studio design brief in Markdown with these sections:
 ## Concept title
+## Clothing category
 ## Mood & story
 ## Silhouette & fit
 ## Colour palette (3-5 colours with HEX codes)
 ## Fabrics & materials
 ## Pattern & surface details
 ## Construction notes
+## Production recommendations
 ## Target customer
 Be concise, specific and production-minded.`;
 
@@ -21,11 +23,10 @@ export const generateBrief = createServerFn({ method: "POST" })
     if (!key) return { error: "AI is not configured." };
     const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}`, "X-Lovable-AIG-SDK": "fetch" },
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "fetch" },
       body: JSON.stringify({
         model: "openai/gpt-6-astra",
-        instructions: SYSTEM,
-        input: data.concept,
+        input: [{ role: "system", content: SYSTEM }, { role: "user", content: data.concept }],
         reasoning: { effort: "low" },
         store: false,
         stream: true,

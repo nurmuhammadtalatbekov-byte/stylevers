@@ -7,9 +7,9 @@ export const GARMENT_LABEL: Record<GarmentType, string> = {
   dress: "Dress", trousers: "Trousers", skirt: "Skirt", coat: "Coat",
 };
 
-export const MATERIALS = ["cotton", "denim", "leather", "silk", "wool", "satin", "linen"] as const;
+export const MATERIALS = ["cotton", "denim", "leather", "silk", "wool", "satin", "linen", "velvet", "chiffon", "organza"] as const;
 export type MaterialType = (typeof MATERIALS)[number];
-export const MATERIAL_PROPS: Record<MaterialType, { roughness: number; metalness: number; sheen: number; clearcoat: number; weave: number }> = {
+export const MATERIAL_PROPS: Record<MaterialType, { roughness: number; metalness: number; sheen: number; clearcoat: number; weave: number; opacity?: number }> = {
   cotton: { roughness: 0.9, metalness: 0, sheen: 0.3, clearcoat: 0, weave: 0.08 },
   denim: { roughness: 0.85, metalness: 0, sheen: 0.1, clearcoat: 0, weave: 0.22 },
   leather: { roughness: 0.38, metalness: 0.05, sheen: 0, clearcoat: 0.45, weave: 0.03 },
@@ -17,6 +17,9 @@ export const MATERIAL_PROPS: Record<MaterialType, { roughness: number; metalness
   wool: { roughness: 1, metalness: 0, sheen: 0.6, clearcoat: 0, weave: 0.18 },
   satin: { roughness: 0.16, metalness: 0.08, sheen: 0.8, clearcoat: 0.6, weave: 0.01 },
   linen: { roughness: 0.95, metalness: 0, sheen: 0.2, clearcoat: 0, weave: 0.16 },
+  velvet: { roughness: 0.95, metalness: 0, sheen: 1, clearcoat: 0, weave: 0.12 },
+  chiffon: { roughness: 0.6, metalness: 0, sheen: 0.4, clearcoat: 0, weave: 0.04, opacity: 0.65 },
+  organza: { roughness: 0.35, metalness: 0, sheen: 0.7, clearcoat: 0.15, weave: 0.05, opacity: 0.48 },
 };
 
 export const PATTERNS = ["solid", "stripes", "floral", "geometric", "abstract", "custom"] as const;
@@ -37,7 +40,7 @@ export interface PartStyle {
   accent: string;
   material: MaterialType;
   pattern: PatternType;
-  customTexture?: string;
+  customTexture?: string | undefined;
 }
 
 export interface Design {
