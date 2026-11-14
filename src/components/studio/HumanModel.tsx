@@ -7,7 +7,6 @@ import { clone } from "three/addons/utils/SkeletonUtils.js";
 
 import femaleAsset from "@/assets/models/female-fashion.glb.asset.json";
 import maleAsset from "@/assets/models/male-fashion.glb.asset.json";
-
 import {
   modelFor,
   type ModelId,
@@ -25,40 +24,8 @@ type HumanModelProps = {
   onReady: () => void;
 };
 
-function enhanceSkin(material: THREE.Material) {
-  const copy = material.clone();
-
-  if (copy instanceof THREE.MeshStandardMaterial) {
-    copy.roughness = 0.72;
-    copy.metalness = 0;
-    copy.envMapIntensity = 0.8;
-  }
-
-  return copy;
-}
-
-function prepareHuman(scene: THREE.Object3D, height: number) {
-  const object = clone(scene);
-
-  object.updateMatrixWorld(true);
-
-  const box = new THREE.Box3().setFromObject(object);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-
-  const scale = height / Math.max(size.y, 0.001);
-
-  const root = new THREE.Group();
-
-  root.scale.setScalar(scale);
-
-  object.position.set(
-    -center.x,
-    -box.min.y,
-    -center.z
-  );
-
-  object.traverse((node) => {
+function improveMaterials(root: THREE.Object3D) {
+  root.traverse((node) => {
     if (!(node instanceof THREE.Mesh)) return;
 
     node.castShadow = true;
@@ -68,16 +35,27 @@ function prepareHuman(scene: THREE.Object3D, height: number) {
       ? node.material
       : [node.material];
 
-    const copies = materials.map(enhanceSkin);
+    const updated = materials.map((material) => {
+      const copy = material.clone();
+
+      if (copy instanceof THREE.MeshStandardMaterial) {
+        copy.roughness = Math.max(copy.roughness, 0.48);
+        copy.metalness = 0;
+        copy.envMapIntensity = 1;
+      }
+
+      if (copy instanceof THREE.MeshPhysicalMaterial) {
+        copy.clearcoat = Math.min(copy.clearcoat, 0.15);
+        copy.clearcoatRoughness = 0.4;
+      }
+
+      return copy;
+    });
 
     node.material = Array.isArray(node.material)
-      ? copies
-      : copies[0];
+      ? updated
+      : updated[0] ?? node.material;
   });
-
-  root.add(object);
-
-  return root;
 }
 
 export function HumanModel({
@@ -86,6 +64,8 @@ export function HumanModel({
   onReady,
 }: HumanModelProps) {
   const model = modelFor(modelId);
+  const group = useRef<THREE.Group>(null);
+  const readyRef = useRef(false);
 
   const { scene, animations } = useGLTF(
     MODEL_ASSETS[modelId],
@@ -93,66 +73,71 @@ export function HumanModel({
     true
   );
 
-  const group = useRef<THREE.Group>(null);
+  const human = useMemo(() => {
+    const object = clone(scene);
 
-  const human = useMemo(
-    () => prepareHuman(scene, model.height),
-    [scene, model.height]
-  );
+    object.updateMatrixWorld(true);
 
-  const { actions, names } = useAnimations(
-    animations,
-    group
-  );
+    const bounds = new THREE.Box3().setFromObject(object);
+    const size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+
+    const scale = model.height / Math.max(size.y, 0.001);
+
+    const root = new THREE.Group();
+    root.scale.setScalar(scale);
+
+    object.position.set(
+      object.position.x - center.x,
+      object.position.y - bounds.min.y,
+      object.position.z - center.z
+    );
+
+    improveMaterials(object);
+    root.add(object);
+
+    return root;
+  }, [scene, model.height]);
+
+  const { actions, names } = useAnimations(animations, group);
 
   useEffect(() => {
-    const walkName = names.find((name) =>
-      name.toLowerCase().includes("walk")
-    );
-
-    const idleName = names.find((name) =>
-      name.toLowerCase().includes("idle")
-    );
-
-    const selectedName =
-      pose === "runway" ? walkName : idleName;
-
     Object.values(actions).forEach((action) => {
       action?.stop();
     });
 
-    if (selectedName && actions[selectedName]) {
-      const action = actions[selectedName];
+    if (pose === "runway") {
+      const walkName = names.find((name) =>
+        name.toLowerCase().includes("walk")
+      );
 
-      action.reset();
-      action.fadeIn(0.35);
-      action.play();
+      const action = walkName ? actions[walkName] : undefined;
 
-      action.timeScale = pose === "runway" ? 0.75 : 1;
+      if (action) {
+        action.reset();
+        action.fadeIn(0.35);
+        action.timeScale = 0.8;
+        action.play();
+      }
     }
 
     return () => {
       Object.values(actions).forEach((action) => {
-        action?.fadeOut(0.2);
+        action?.stop();
       });
     };
   }, [pose, actions, names]);
 
-  const frames = useRef(0);
+  useEffect(() => {
+    readyRef.current = false;
+  }, [modelId]);
 
   useFrame(() => {
-    if (frames.current < 3) {
-      frames.current += 1;
-
-      if (frames.current === 3) {
-        onReady();
-      }
+    if (!readyRef.current) {
+      readyRef.current = true;
+      onReady();
     }
   });
-
-  useEffect(() => {
-    frames.current = 0;
-  }, [modelId, pose]);
 
   return (
     <group ref={group}>
@@ -160,3 +145,6 @@ export function HumanModel({
     </group>
   );
 }
+
+useGLTF.preload(MODEL_ASSETS.female);
+useGLTF.preload(MODEL_ASSETS.male);
