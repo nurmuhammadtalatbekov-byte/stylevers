@@ -29,7 +29,6 @@ import {
 
 import { HumanModel } from "./HumanModel";
 import { Underwear } from "./Underwear";
-import studioEnvironment from "@/assets/models/fashion-studio.hdr.asset.json";
 
 export type View = "front" | "back" | "left" | "right";
 
@@ -498,47 +497,16 @@ function Garment({ d }: { d: Design }) {
       return <Top d={d} sleeve={0.2} bottom={0.84} />;
 
     case "shirt":
-      return (
-        <Top
-          d={d}
-          sleeve={0.56}
-          bottom={0.8}
-          collar
-          open
-        />
-      );
+      return <Top d={d} sleeve={0.56} bottom={0.8} collar open />;
 
     case "hoodie":
-      return (
-        <Top
-          d={d}
-          sleeve={0.58}
-          bottom={0.84}
-          hood
-        />
-      );
+      return <Top d={d} sleeve={0.58} bottom={0.84} hood />;
 
     case "jacket":
-      return (
-        <Top
-          d={d}
-          sleeve={0.58}
-          bottom={0.88}
-          collar
-          open
-        />
-      );
+      return <Top d={d} sleeve={0.58} bottom={0.88} collar open />;
 
     case "coat":
-      return (
-        <Top
-          d={d}
-          sleeve={0.6}
-          bottom={0.42}
-          collar
-          open
-        />
-      );
+      return <Top d={d} sleeve={0.6} bottom={0.42} collar open />;
 
     case "dress":
       return <Lower d={d} kind="dress" />;
@@ -567,13 +535,7 @@ function AnimatedGarment({ d }: { d: Design }) {
     if (!garmentRef.current) return;
 
     const current = garmentRef.current.scale.x;
-
-    const next = THREE.MathUtils.damp(
-      current,
-      1,
-      4,
-      delta,
-    );
+    const next = THREE.MathUtils.damp(current, 1, 4, delta);
 
     garmentRef.current.scale.setScalar(next);
   });
@@ -589,7 +551,6 @@ function AnimatedGarment({ d }: { d: Design }) {
 
 const Rig = forwardRef<SceneHandle>(function Rig(_, ref) {
   const { camera, gl } = useThree();
-
   const controls = useRef<OrbitImpl>(null);
 
   useImperativeHandle(
@@ -663,7 +624,6 @@ export const GarmentScene = forwardRef<
   ref,
 ) {
   const wrap = useRef<HTMLDivElement>(null);
-
   const [colors, setColors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -781,13 +741,6 @@ export const GarmentScene = forwardRef<
           )}
         </Environment>
 
-        <Suspense fallback={null}>
-          <Environment
-            files={studioEnvironment.url}
-            environmentIntensity={0.6}
-          />
-        </Suspense>
-
         <group>
           <Suspense fallback={null}>
             <HumanModel
@@ -801,7 +754,6 @@ export const GarmentScene = forwardRef<
             />
           </Suspense>
 
-          {/* Ichki kiyim va tanlangan kiyim doim model bilan birga */}
           <group scale={[1.08, 0.88, 1.12]}>
             <Underwear />
 
