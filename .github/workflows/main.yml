@@ -1,49 +1,34 @@
 
-name: Automatic Build
+name: STYLEVERSE Automatic Build
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build Project
+    name: Build STYLEVERSE
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: 24
 
-      - name: Install Dependencies
+      - name: Enable pnpm
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f pnpm-lock.yaml ]; then
-            npm install -g pnpm
-            pnpm install --frozen-lockfile
-          elif [ -f yarn.lock ]; then
-            yarn install --frozen-lockfile
-          else
-            npm install
-          fi
+          corepack enable
+          corepack prepare pnpm@latest --activate
 
-      - name: Build Project
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm build
-          elif [ -f yarn.lock ]; then
-            yarn build
-          else
-            npm run build
-          fi
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
