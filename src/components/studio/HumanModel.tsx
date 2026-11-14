@@ -4,8 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-
-import femaleAsset from "@/assets/models/female-fashion.glb.asset.json";
+const FEMALE_MODEL_URL = "/models/woman-base-character-1.glb";
 import maleAsset from "@/assets/models/male-fashion.glb.asset.json";
 import {
   modelFor,
