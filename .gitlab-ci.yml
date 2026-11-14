@@ -1,0 +1,19 @@
+
+image: oven/bun:1
+
+stages:
+  - deploy
+
+  deploy-pages:
+    stage: deploy
+      script:
+          - bun install --frozen-lockfile
+              - bun run build
+                  - mv dist public
+                    pages: true
+                      artifacts:
+                          paths:
+                                - public
+                                  rules:
+                                      - if: '$CI_COMMIT_BRANCH == "main"'
+                                      
