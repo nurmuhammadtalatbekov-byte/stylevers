@@ -1,5 +1,5 @@
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import {
   ContactShadows,
   Environment,
@@ -17,6 +17,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import type { ComponentRef } from "react";
+
 type OrbitImpl = ComponentRef<typeof OrbitControls>;
 
 import {
@@ -25,6 +26,7 @@ import {
   type Design,
   type PartStyle,
 } from "@/lib/fashion";
+
 import { HumanModel } from "./HumanModel";
 import { Underwear } from "./Underwear";
 import studioEnvironment from "@/assets/models/fashion-studio.hdr.asset.json";
@@ -152,7 +154,6 @@ function patternTexture(s: PartStyle, weave: number): THREE.Texture {
     g.globalAlpha = 1;
   }
 
-  // Fabric weave noise
   if (weave > 0) {
     g.globalAlpha = weave;
 
@@ -283,7 +284,6 @@ function Top({
     pts.push([last[0] + flare + 0.01, by]);
 
     const geometry = lathe(pts);
-
     geometry.scale(1, 1, 0.95);
 
     const positions = geometry.attributes["position"];
@@ -297,12 +297,7 @@ function Top({
         const fold =
           1 + 0.016 * Math.sin(y * 44 + Math.atan2(z, x) * 5);
 
-        positions.setXYZ(
-          i,
-          x * fold,
-          y,
-          z * fold,
-        );
+        positions.setXYZ(i, x * fold, y, z * fold);
       }
 
       geometry.computeVertexNormals();
@@ -326,19 +321,9 @@ function Top({
             position={[s * 0.19, 1.39, 0]}
             rotation={[0, 0, s * 0.4]}
           >
-            <mesh
-              position={[0, -sl / 2 + 0.02, 0]}
-              castShadow
-            >
+            <mesh position={[0, -sl / 2 + 0.02, 0]} castShadow>
               <cylinderGeometry
-                args={[
-                  0.058 * f,
-                  0.068 * f,
-                  sl,
-                  24,
-                  1,
-                  true,
-                ]}
+                args={[0.058 * f, 0.068 * f, sl, 24, 1, true]}
               />
               <Fabric style={d.parts.sleeves} />
             </mesh>
@@ -347,9 +332,7 @@ function Top({
               position={[0, -sl + 0.03, 0]}
               rotation={[Math.PI / 2, 0, 0]}
             >
-              <torusGeometry
-                args={[0.058 * f, 0.008, 8, 24]}
-              />
+              <torusGeometry args={[0.058 * f, 0.008, 8, 24]} />
               <Fabric style={d.parts.trim} />
             </mesh>
           </group>
@@ -369,9 +352,7 @@ function Top({
 
       {collar && (
         <mesh position={[0, 1.53, 0]}>
-          <cylinderGeometry
-            args={[0.1, 0.11, 0.07, 40, 1, true]}
-          />
+          <cylinderGeometry args={[0.1, 0.11, 0.07, 40, 1, true]} />
           <Fabric style={d.parts.trim} />
         </mesh>
       )}
@@ -628,17 +609,12 @@ const Rig = forwardRef<SceneHandle>(function Rig(_, ref) {
 
       zoom(f) {
         const c = controls.current;
-
         if (!c) return;
 
         const dir = camera.position.clone().sub(c.target);
 
         dir.setLength(
-          THREE.MathUtils.clamp(
-            dir.length() * f,
-            1.2,
-            6,
-          ),
+          THREE.MathUtils.clamp(dir.length() * f, 1.2, 6),
         );
 
         camera.position.copy(c.target).add(dir);
@@ -683,7 +659,7 @@ export const GarmentScene = forwardRef<
     showOutfit?: boolean;
   }
 >(function GarmentScene(
-  { design, showOutfit = false },
+  { design, showOutfit = true },
   ref,
 ) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -815,7 +791,6 @@ export const GarmentScene = forwardRef<
         <group>
           <Suspense fallback={null}>
             <HumanModel
-              modelId={design.modelId ?? "female"}
               pose={design.modelPose ?? "standing"}
               onReady={() =>
                 wrap.current?.setAttribute(
@@ -826,21 +801,14 @@ export const GarmentScene = forwardRef<
             />
           </Suspense>
 
-          {design.modelPose !== "runway" && (
-            <group
-              scale={
-                design.modelId === "male"
-                  ? [1.1, 0.96, 1.1]
-                  : [1.08, 0.88, 1.12]
-              }
-            >
-              {design.modelId !== "male" && <Underwear />}
+          {/* Ichki kiyim va tanlangan kiyim doim model bilan birga */}
+          <group scale={[1.08, 0.88, 1.12]}>
+            <Underwear />
 
-              {showOutfit && (
-                <AnimatedGarment d={design} />
-              )}
-            </group>
-          )}
+            {showOutfit && (
+              <AnimatedGarment d={design} />
+            )}
+          </group>
         </group>
 
         {floor && (
