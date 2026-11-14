@@ -1,4 +1,5 @@
 // Pure data + rules for garments, materials and patterns (no React, no three.js).
+import type { ModelId, ModelPose } from "./fashion-models";
 
 export const GARMENTS = ["tshirt", "shirt", "hoodie", "jacket", "dress", "trousers", "skirt", "coat"] as const;
 export type GarmentType = (typeof GARMENTS)[number];
@@ -52,6 +53,9 @@ export interface Design {
   parts: Record<PartId, PartStyle>;
   sleeve?: SleeveStyle | undefined;
   collar?: CollarStyle | undefined;
+  modelId?: ModelId | undefined;
+  modelPose?: ModelPose | undefined;
+  studioEnvironment?: "light" | "dark" | undefined;
   collectionId?: string | undefined;
   preview?: string | undefined;
   updatedAt: number;

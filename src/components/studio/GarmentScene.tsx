@@ -1,10 +1,12 @@
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, OrbitControls } from "@react-three/drei";
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { forwardRef, Suspense, useEffect, useState, useImperativeHandle, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { ComponentRef } from "react";
 type OrbitImpl = ComponentRef<typeof OrbitControls>;
 import { MATERIAL_PROPS, SLEEVE_LEN, type Design, type PartStyle } from "@/lib/fashion";
+import { HumanModel } from "./HumanModel";
+import studioEnvironment from "@/assets/models/fashion-studio.hdr.asset.json";
 
 export type View = "front" | "back" | "left" | "right";
 export interface SceneHandle { setView: (v: View) => void; reset: () => void; zoom: (f: number) => void; snapshot: () => string; spin: (on: boolean) => void }
@@ -81,28 +83,6 @@ function lathe(points: [number, number][], segs = 48) {
   return new THREE.LatheGeometry(points.map(([r, y]) => new THREE.Vector2(r, y)), segs);
 }
 
-const SKIN = <meshStandardMaterial color="#c9c4bd" roughness={0.55} />;
-
-function Mannequin() {
-  const torso = useMemo(() => lathe([[0, 0.9], [0.165, 0.92], [0.175, 1.0], [0.145, 1.12], [0.155, 1.3], [0.185, 1.41], [0.1, 1.5], [0.05, 1.54], [0, 1.55]]), []);
-  return (
-    <group>
-      <mesh geometry={torso} castShadow receiveShadow>{SKIN}</mesh>
-      <mesh position={[0, 1.58, 0]} castShadow><cylinderGeometry args={[0.045, 0.05, 0.1, 24]} />{SKIN}</mesh>
-      <mesh position={[0, 1.72, 0.01]} scale={[0.9, 1.15, 1]} castShadow><sphereGeometry args={[0.1, 32, 32]} />{SKIN}</mesh>
-      {[-1, 1].map((s) => (
-        <group key={s} position={[s * 0.205, 1.42, 0]} rotation={[0, 0, s * 0.10]}>
-          <mesh position={[0, -0.29, 0]} castShadow><capsuleGeometry args={[0.035, 0.48, 8, 16]} />{SKIN}</mesh>
-        </group>
-      ))}
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * 0.085, 0.5, 0]} castShadow><capsuleGeometry args={[0.062, 0.8, 8, 16]} />{SKIN}</mesh>
-      ))}
-      <mesh position={[0, 0.02, 0]} receiveShadow castShadow><cylinderGeometry args={[0.32, 0.36, 0.04, 48]} /><meshStandardMaterial color="#1b1b20" metalness={0.6} roughness={0.3} /></mesh>
-    </group>
-  );
-}
-
 /* ---------- garments ---------- */
 function Top({ d, sleeve: baseSleeve, bottom, hood: baseHood, open, collar: baseCollar }: { d: Design; sleeve: number; bottom: number; hood?: boolean; open?: boolean; collar?: boolean }) {
   const f = d.fit;
@@ -119,14 +99,25 @@ function Top({ d, sleeve: baseSleeve, bottom, hood: baseHood, open, collar: base
     for (const [r, y] of prof) if (y >= by) pts.push([r + 0.018, y]);
     const last = pts[pts.length - 1] ?? [0.2, by];
     pts.push([last[0] + flare + 0.01, by]);
-    return lathe(pts);
+    const geometry = lathe(pts);
+    geometry.scale(1, 1, 0.95);
+    const positions = geometry.attributes["position"];
+    if (positions) {
+      for (let i = 0; i < positions.count; i++) {
+        const y = positions.getY(i); const x = positions.getX(i); const z = positions.getZ(i);
+        const fold = 1 + 0.016 * Math.sin(y * 44 + Math.atan2(z, x) * 5);
+        positions.setXYZ(i, x * fold, y, z * fold);
+      }
+      geometry.computeVertexNormals();
+    }
+    return geometry;
   }, [by, flare]);
   const sl = sleeve * Math.min(d.length, 1.1);
   return (
     <group scale={[f, 1, f]}>
       <mesh geometry={body} castShadow><Fabric style={d.parts.body} /></mesh>
       {sl > 0 && [-1, 1].map((s) => (
-        <group key={s} position={[s * 0.205, 1.42, 0]} rotation={[0, 0, s * 0.10]}>
+        <group key={s} position={[s * 0.19, 1.39, 0]} rotation={[0, 0, s * 0.40]}>
           <mesh position={[0, -sl / 2 + 0.02, 0]} castShadow>
             <cylinderGeometry args={[0.058 * f, 0.068 * f, sl, 24, 1, true]} /><Fabric style={d.parts.sleeves} />
           </mesh>
@@ -140,8 +131,8 @@ function Top({ d, sleeve: baseSleeve, bottom, hood: baseHood, open, collar: base
       <mesh position={[0, by + 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.2 + flare + 0.01, 0.01, 8, 48]} /><Fabric style={d.parts.trim} /></mesh>
       {open && <mesh position={[0, (1.47 + by) / 2, 0.165 + flare / 2]}><boxGeometry args={[0.03, 1.47 - by, 0.02]} /><Fabric style={d.parts.trim} /></mesh>}
       {hood && (
-        <mesh position={[0, 1.6, -0.06]} rotation={[-0.35, 0, 0]} castShadow>
-          <sphereGeometry args={[0.15, 32, 16, Math.PI * 0.15, Math.PI * 1.7, 0, Math.PI * 0.6]} /><Fabric style={d.parts.sleeves} />
+        <mesh position={[0, 1.53, -0.095]} rotation={[-0.35, 0, 0]} castShadow>
+          <sphereGeometry args={[0.15, 32, 16, Math.PI * 0.65, Math.PI * 0.7, 0, Math.PI * 0.6]} /><Fabric style={d.parts.sleeves} />
         </mesh>
       )}
     </group>
@@ -202,35 +193,42 @@ const Rig = forwardRef<SceneHandle>(function Rig(_, ref) {
   return <OrbitControls ref={controls} target={TARGET} enableDamping dampingFactor={0.08} enablePan minDistance={1.2} maxDistance={6} maxPolarAngle={Math.PI * 0.55} makeDefault />;
 });
 
-function Ready({ onReady }: { onReady: () => void }) {
-  const frames = useRef(0);
-  useFrame(() => { if (++frames.current === 2) onReady(); });
-  return null;
-}
-
 export const GarmentScene = forwardRef<SceneHandle, { design: Design }>(function GarmentScene({ design }, ref) {
   const wrap = useRef<HTMLDivElement>(null);
+  const [colors, setColors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const css = getComputedStyle(document.documentElement);
+    setColors(Object.fromEntries(["light-background", "light-floor", "dark-background", "dark-floor", "key", "fill"].map((name) => [name, css.getPropertyValue(`--studio-${name}`).trim()])));
+  }, []);
+  useEffect(() => { wrap.current?.removeAttribute("data-scene-ready"); }, [design.modelId, design.modelPose]);
+  const dark = design.studioEnvironment === "dark";
+  const background = colors[dark ? "dark-background" : "light-background"];
+  const floor = colors[dark ? "dark-floor" : "light-floor"];
+  const keyColor = colors["key"];
+  const fillColor = colors["fill"];
   
   return (
     <div ref={wrap} className="h-full w-full">
       <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={[1, 1.5]} camera={{ position: VIEWS.front, fov: 35 }} gl={{ preserveDrawingBuffer: true, antialias: true }}>
-        <Ready onReady={() => wrap.current?.setAttribute("data-scene-ready", "true")} />
-        <color attach="background" args={["#e2e5e3"]} />
-        <fog attach="fog" args={["#e2e5e3", 6, 12]} />
+        {background && <color attach="background" args={[background]} />}
+        {background && <fog attach="fog" args={[background, 6, 12]} />}
         <ambientLight intensity={0.65} />
         <directionalLight position={[2.5, 4, 3]} intensity={2.2} castShadow shadow-mapSize={[1024, 1024]} />
-        <spotLight position={[-3, 3, -2]} intensity={25} color="#ffffff" angle={0.6} penumbra={1} />
-        <spotLight position={[3, 2, -3]} intensity={15} color="#d9e7eb" angle={0.6} penumbra={1} />
+        {keyColor && <spotLight position={[-3, 3, -2]} intensity={25} color={keyColor} angle={0.6} penumbra={1} />}
+        {fillColor && <spotLight position={[3, 2, -3]} intensity={15} color={fillColor} angle={0.6} penumbra={1} />}
         <Environment resolution={128}>
           <Lightformer intensity={1.6} position={[0, 5, 0]} scale={[10, 10, 1]} rotation-x={Math.PI / 2} />
-          <Lightformer intensity={0.8} color="#ffffff" position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} />
-          <Lightformer intensity={0.6} color="#d9e7eb" position={[5, 1, 1]} rotation-y={-Math.PI / 2} scale={[20, 2, 1]} />
+          {keyColor && <Lightformer intensity={0.8} color={keyColor} position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} />}
+          {fillColor && <Lightformer intensity={0.6} color={fillColor} position={[5, 1, 1]} rotation-y={-Math.PI / 2} scale={[20, 2, 1]} />}
         </Environment>
+        <Suspense fallback={null}><Environment files={studioEnvironment.url} environmentIntensity={0.6} /></Suspense>
         <group>
-          <Mannequin />
-          <Garment d={design} />
+          <Suspense fallback={null}>
+            <HumanModel modelId={design.modelId ?? "female"} pose={design.modelPose ?? "standing"} onReady={() => wrap.current?.setAttribute("data-scene-ready", "true")} />
+          </Suspense>
+          {design.modelPose !== "runway" && <group scale={design.modelId === "male" ? [1.1, 0.96, 1.1] : [1.08, 0.88, 1.12]}><Garment d={design} /></group>}
         </group>
-        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[6, 64]} /><meshStandardMaterial color="#d6dbd8" roughness={0.9} /></mesh>
+        {floor && <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><circleGeometry args={[6, 64]} /><meshStandardMaterial color={floor} roughness={0.9} /></mesh>}
         <ContactShadows position={[0, 0.001, 0]} opacity={0.6} scale={4} blur={2.4} far={2} />
         <Rig ref={ref} />
       </Canvas>

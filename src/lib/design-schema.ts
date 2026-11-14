@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { COLLARS, GARMENTS, MATERIALS, PATTERNS, SLEEVES } from "./fashion";
+import { MODEL_IDS, MODEL_POSES, STUDIO_ENVIRONMENTS } from "./fashion-models";
 
 const style = z.object({
   color: z.string().regex(/^#[0-9a-f]{6}$/i),
@@ -13,6 +14,8 @@ export const designSchema = z.object({
   length: z.number().min(0.8).max(1.2),
   parts: z.object({ body: style, sleeves: style, trim: style }),
   sleeve: z.enum(SLEEVES).optional(), collar: z.enum(COLLARS).optional(),
+  modelId: z.enum(MODEL_IDS).optional(), modelPose: z.enum(MODEL_POSES).optional(),
+  studioEnvironment: z.enum(STUDIO_ENVIRONMENTS).optional(),
   collectionId: z.string().optional(), preview: z.string().max(1000000).optional(),
   updatedAt: z.number().finite(),
 });

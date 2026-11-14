@@ -10,6 +10,9 @@ import {
 } from "@/lib/fashion";
 import { designSchema } from "@/lib/design-schema";
 import { actions } from "@/lib/store";
+import { FASHION_MODELS } from "@/lib/fashion-models";
+import femalePreview from "@/assets/models/female-preview.webp.asset.json";
+import malePreview from "@/assets/models/male-preview.webp.asset.json";
 
 export const Route = createFileRoute("/_dash/studio")({
   ssr: false,
@@ -19,9 +22,9 @@ export const Route = createFileRoute("/_dash/studio")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { title: "3D Design Studio — STYLEVERSE" },
-      { name: "description", content: "Design garments on a real-time 3D mannequin: colours, fabrics, patterns and fit." },
+      { name: "description", content: "Design garments on detailed female and male 3D fashion models: colours, fabrics, patterns and fit." },
       { property: "og:title", content: "3D Design Studio — STYLEVERSE" },
-      { property: "og:description", content: "Design garments on a real-time 3D mannequin." },
+      { property: "og:description", content: "Create garment studies on detailed female and male 3D fashion models." },
     ],
   }),
   component: Studio,
@@ -98,6 +101,10 @@ function Studio() {
     <div className="grid lg:h-[min(900px,calc(100vh-4rem))] lg:grid-cols-[1fr_360px]">
       <section className="relative h-[58vh] min-h-[380px] lg:h-full">
         <GarmentScene ref={scene} design={design} />
+        <div className="glass absolute bottom-3 left-3 flex gap-1 rounded-lg p-1">
+          <Button variant="ghost" size="sm" aria-pressed={design.studioEnvironment !== "dark"} onClick={() => update({ studioEnvironment: "light" })}>Light</Button>
+          <Button variant="ghost" size="sm" aria-pressed={design.studioEnvironment === "dark"} onClick={() => update({ studioEnvironment: "dark" })}>Dark</Button>
+        </div>
         <div className="glass absolute left-3 top-3 flex flex-wrap gap-1 rounded-xl p-1">
           {(["front", "back", "left", "right"] as View[]).map((v) => (
             <Button variant="ghost" key={v} onClick={() => scene.current?.setView(v)} className="rounded-lg px-3 py-1.5 text-xs capitalize hover:bg-secondary">{v}</Button>
@@ -128,6 +135,20 @@ function Studio() {
             </label>
           </div>
         </div>
+
+        <Section title="Fashion model">
+          <div className="grid grid-cols-2 gap-2">
+            {FASHION_MODELS.map((model) => <Button key={model.id} variant="ghost" aria-label={`Select ${model.name}`} aria-pressed={(design.modelId ?? "female") === model.id}
+              onClick={() => update({ modelId: model.id })} className={`h-auto min-w-0 flex-col gap-2 overflow-hidden rounded-lg border p-2 ${(design.modelId ?? "female") === model.id ? "border-primary bg-accent" : "bg-secondary"}`}>
+              <img src={model.id === "female" ? femalePreview.url : malePreview.url} alt={model.name} className="aspect-[4/3] w-full rounded object-contain" />
+              <span className="text-xs">{model.name}</span><span className="text-[10px] text-muted-foreground">{Math.round(model.height * 100)} cm · {model.build}</span>
+            </Button>)}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Chip active={design.modelPose !== "runway"} onClick={() => update({ modelPose: "standing" })}>Fitting pose</Chip>
+            <Chip active={design.modelPose === "runway"} onClick={() => update({ modelPose: "runway" })}>Model walk</Chip>
+          </div>
+        </Section>
 
         <Section title="Garment">
           <div className="grid grid-cols-4 gap-1.5">

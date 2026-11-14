@@ -60,6 +60,12 @@
   --glass: oklch(0.2 0.008 285 / 55%);
   --gradient-brand: linear-gradient(120deg, var(--primary), var(--primary));
   --shadow-glow: 0 20px 60px -20px color-mix(in oklab, var(--primary) 55%, transparent);
+  --studio-light-background: #e2e5e3;
+  --studio-light-floor: #d6dbd8;
+  --studio-dark-background: #282a2c;
+  --studio-dark-floor: #343739;
+  --studio-fill: #d9e7eb;
+  --studio-key: #ffffff;
 }
 
 @layer base {

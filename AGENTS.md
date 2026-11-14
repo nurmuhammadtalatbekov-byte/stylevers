@@ -34,3 +34,5 @@ use the editor.
 - Preserve device persistence; cloud workspace backups are owner-scoped and restored by non-destructive merge, never automatic replacement.
 - Keep the existing raw HTTP Responses client and model for brief generation; render Markdown without enabling raw HTML.
 - Share presentation tokens through global CSS and use the existing Button for studio controls.
+- Load human models from licensed CDN asset pointers and clone skinned scenes before normalization; cached geometry must never be mutated because switching models reuses the loader cache.
+- Keep model choices in the portable design schema; older designs default to the female fitting model, and runway preview shows the human without unrigged garment shells to avoid misleading animated fit.
