@@ -9,8 +9,17 @@ describe("Fashion model persistence", () => {
     const design = designSchema.parse(newDesign());
     expect(modelFor(design.modelId).id).toBe("female");
   });
+  it("provides both licensed model choices", () => {
+    expect(modelFor("female").assetUrl).toContain("female-base-character-rigged.glb");
+    expect(modelFor("male").assetUrl).toContain("male-fashion.glb");
+  });
   it("saves male model, runway pose, and dark environment with the design", () => {
-    const design = designSchema.parse({ ...newDesign(), modelId: "male", modelPose: "runway", studioEnvironment: "dark" });
+    const design = designSchema.parse({
+      ...newDesign(),
+      modelId: "male",
+      modelPose: "runway",
+      studioEnvironment: "dark",
+    });
     actions.saveDesign(design);
     const reopened = actions.getDesign(design.id);
     expect(reopened?.modelId).toBe("male");

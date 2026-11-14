@@ -1,11 +1,5 @@
-
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import {
-  ContactShadows,
-  Environment,
-  Lightformer,
-  OrbitControls,
-} from "@react-three/drei";
+import { ContactShadows, Environment, Lightformer, OrbitControls } from "@react-three/drei";
 import {
   forwardRef,
   Suspense,
@@ -20,12 +14,7 @@ import type { ComponentRef } from "react";
 
 type OrbitImpl = ComponentRef<typeof OrbitControls>;
 
-import {
-  MATERIAL_PROPS,
-  SLEEVE_LEN,
-  type Design,
-  type PartStyle,
-} from "@/lib/fashion";
+import { MATERIAL_PROPS, SLEEVE_LEN, type Design, type PartStyle } from "@/lib/fashion";
 
 import { HumanModel } from "./HumanModel";
 import { Underwear } from "./Underwear";
@@ -104,13 +93,7 @@ function patternTexture(s: PartStyle, weave: number): THREE.Texture {
           const a = (k / 5) * Math.PI * 2;
 
           g.beginPath();
-          g.arc(
-            x + ox + Math.cos(a) * 10,
-            y + Math.sin(a) * 10,
-            7,
-            0,
-            7,
-          );
+          g.arc(x + ox + Math.cos(a) * 10, y + Math.sin(a) * 10, 7, 0, 7);
           g.fill();
         }
 
@@ -130,22 +113,14 @@ function patternTexture(s: PartStyle, weave: number): THREE.Texture {
 
     let seed = 7;
 
-    const r = () =>
-      ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
 
     for (let i = 0; i < 9; i++) {
       g.globalAlpha = 0.5 + r() * 0.5;
       g.beginPath();
       g.moveTo(r() * 256, r() * 256);
 
-      g.bezierCurveTo(
-        r() * 256,
-        r() * 256,
-        r() * 256,
-        r() * 256,
-        r() * 256,
-        r() * 256,
-      );
+      g.bezierCurveTo(r() * 256, r() * 256, r() * 256, r() * 256, r() * 256, r() * 256);
 
       g.stroke();
     }
@@ -195,10 +170,7 @@ function patternTexture(s: PartStyle, weave: number): THREE.Texture {
 function Fabric({ style }: { style: PartStyle }) {
   const m = MATERIAL_PROPS[style.material];
 
-  const map = useMemo(
-    () => patternTexture(style, m.weave),
-    [style, m.weave],
-  );
+  const map = useMemo(() => patternTexture(style, m.weave), [style, m.weave]);
 
   return (
     <meshPhysicalMaterial
@@ -243,10 +215,7 @@ function Top({
 }) {
   const f = d.fit;
 
-  const sleeve =
-    d.sleeve && d.sleeve !== "auto"
-      ? SLEEVE_LEN[d.sleeve]
-      : baseSleeve;
+  const sleeve = d.sleeve && d.sleeve !== "auto" ? SLEEVE_LEN[d.sleeve] : baseSleeve;
 
   const cs = d.collar ?? "auto";
 
@@ -256,8 +225,7 @@ function Top({
 
   const by = 1.5 - (1.5 - bottom) * d.length;
 
-  const flare =
-    bottom < 0.8 ? 0.12 * (0.8 - bottom) * 3 : 0;
+  const flare = bottom < 0.8 ? 0.12 * (0.8 - bottom) * 3 : 0;
 
   const body = useMemo(() => {
     const pts: [number, number][] = [];
@@ -293,8 +261,7 @@ function Top({
         const x = positions.getX(i);
         const z = positions.getZ(i);
 
-        const fold =
-          1 + 0.016 * Math.sin(y * 44 + Math.atan2(z, x) * 5);
+        const fold = 1 + 0.016 * Math.sin(y * 44 + Math.atan2(z, x) * 5);
 
         positions.setXYZ(i, x * fold, y, z * fold);
       }
@@ -315,22 +282,13 @@ function Top({
 
       {sl > 0 &&
         [-1, 1].map((s) => (
-          <group
-            key={s}
-            position={[s * 0.19, 1.39, 0]}
-            rotation={[0, 0, s * 0.4]}
-          >
+          <group key={s} position={[s * 0.19, 1.39, 0]} rotation={[0, 0, s * 0.4]}>
             <mesh position={[0, -sl / 2 + 0.02, 0]} castShadow>
-              <cylinderGeometry
-                args={[0.058 * f, 0.068 * f, sl, 24, 1, true]}
-              />
+              <cylinderGeometry args={[0.058 * f, 0.068 * f, sl, 24, 1, true]} />
               <Fabric style={d.parts.sleeves} />
             </mesh>
 
-            <mesh
-              position={[0, -sl + 0.03, 0]}
-              rotation={[Math.PI / 2, 0, 0]}
-            >
+            <mesh position={[0, -sl + 0.03, 0]} rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[0.058 * f, 0.008, 8, 24]} />
               <Fabric style={d.parts.trim} />
             </mesh>
@@ -338,13 +296,8 @@ function Top({
         ))}
 
       {!noCollar && (
-        <mesh
-          position={[0, 1.495, 0]}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <torusGeometry
-            args={[0.1, collar ? 0.022 : 0.012, 10, 40]}
-          />
+        <mesh position={[0, 1.495, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.1, collar ? 0.022 : 0.012, 10, 40]} />
           <Fabric style={d.parts.trim} />
         </mesh>
       )}
@@ -356,13 +309,8 @@ function Top({
         </mesh>
       )}
 
-      <mesh
-        position={[0, by + 0.01, 0]}
-        rotation={[Math.PI / 2, 0, 0]}
-      >
-        <torusGeometry
-          args={[0.2 + flare + 0.01, 0.01, 8, 48]}
-        />
+      <mesh position={[0, by + 0.01, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.2 + flare + 0.01, 0.01, 8, 48]} />
         <Fabric style={d.parts.trim} />
       </mesh>
 
@@ -374,22 +322,8 @@ function Top({
       )}
 
       {hood && (
-        <mesh
-          position={[0, 1.53, -0.095]}
-          rotation={[-0.35, 0, 0]}
-          castShadow
-        >
-          <sphereGeometry
-            args={[
-              0.15,
-              32,
-              16,
-              Math.PI * 0.65,
-              Math.PI * 0.7,
-              0,
-              Math.PI * 0.6,
-            ]}
-          />
+        <mesh position={[0, 1.53, -0.095]} rotation={[-0.35, 0, 0]} castShadow>
+          <sphereGeometry args={[0.15, 32, 16, Math.PI * 0.65, Math.PI * 0.7, 0, Math.PI * 0.6]} />
           <Fabric style={d.parts.sleeves} />
         </mesh>
       )}
@@ -399,13 +333,7 @@ function Top({
 
 /* ---------- LOWER GARMENTS ---------- */
 
-function Lower({
-  d,
-  kind,
-}: {
-  d: Design;
-  kind: "trousers" | "skirt" | "dress";
-}) {
+function Lower({ d, kind }: { d: Design; kind: "trousers" | "skirt" | "dress" }) {
   const f = d.fit;
 
   const geo = useMemo(() => {
@@ -450,38 +378,15 @@ function Lower({
         <Fabric style={d.parts.body} />
       </mesh>
 
-      <mesh
-        position={[0, 1.0, 0]}
-        rotation={[Math.PI / 2, 0, 0]}
-      >
-        <torusGeometry
-          args={[
-            kind === "dress" ? 0.19 : 0.188,
-            0.014,
-            10,
-            48,
-          ]}
-        />
+      <mesh position={[0, 1.0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[kind === "dress" ? 0.19 : 0.188, 0.014, 10, 48]} />
         <Fabric style={d.parts.trim} />
       </mesh>
 
       {kind === "trousers" &&
         [-1, 1].map((s) => (
-          <mesh
-            key={s}
-            position={[s * 0.088, 0.86 - legLen / 2, 0]}
-            castShadow
-          >
-            <cylinderGeometry
-              args={[
-                0.085,
-                0.075 + (f - 1) * 0.1,
-                legLen,
-                24,
-                1,
-                true,
-              ]}
-            />
+          <mesh key={s} position={[s * 0.088, 0.86 - legLen / 2, 0]} castShadow>
+            <cylinderGeometry args={[0.085, 0.075 + (f - 1) * 0.1, legLen, 24, 1, true]} />
             <Fabric style={d.parts.sleeves} />
           </mesh>
         ))}
@@ -574,9 +479,7 @@ const Rig = forwardRef<SceneHandle>(function Rig(_, ref) {
 
         const dir = camera.position.clone().sub(c.target);
 
-        dir.setLength(
-          THREE.MathUtils.clamp(dir.length() * f, 1.2, 6),
-        );
+        dir.setLength(THREE.MathUtils.clamp(dir.length() * f, 1.2, 6));
 
         camera.position.copy(c.target).add(dir);
         c.update();
@@ -619,10 +522,7 @@ export const GarmentScene = forwardRef<
     design: Design;
     showOutfit?: boolean;
   }
->(function GarmentScene(
-  { design, showOutfit = true },
-  ref,
-) {
+>(function GarmentScene({ design, showOutfit = true }, ref) {
   const wrap = useRef<HTMLDivElement>(null);
   const [colors, setColors] = useState<Record<string, string>>({});
 
@@ -631,17 +531,9 @@ export const GarmentScene = forwardRef<
 
     setColors(
       Object.fromEntries(
-        [
-          "light-background",
-          "light-floor",
-          "dark-background",
-          "dark-floor",
-          "key",
-          "fill",
-        ].map((name) => [
-          name,
-          css.getPropertyValue(`--studio-${name}`).trim(),
-        ]),
+        ["light-background", "light-floor", "dark-background", "dark-floor", "key", "fill"].map(
+          (name) => [name, css.getPropertyValue(`--studio-${name}`).trim()],
+        ),
       ),
     );
   }, []);
@@ -651,12 +543,11 @@ export const GarmentScene = forwardRef<
   }, [design.modelId, design.modelPose]);
 
   const dark = design.studioEnvironment === "dark";
+  const showGarment = showOutfit && design.modelPose !== "runway";
 
-  const background =
-    colors[dark ? "dark-background" : "light-background"];
+  const background = colors[dark ? "dark-background" : "light-background"];
 
-  const floor =
-    colors[dark ? "dark-floor" : "light-floor"];
+  const floor = colors[dark ? "dark-floor" : "light-floor"];
 
   const keyColor = colors["key"];
   const fillColor = colors["fill"];
@@ -675,13 +566,9 @@ export const GarmentScene = forwardRef<
           antialias: true,
         }}
       >
-        {background && (
-          <color attach="background" args={[background]} />
-        )}
+        {background && <color attach="background" args={[background]} />}
 
-        {background && (
-          <fog attach="fog" args={[background, 6, 12]} />
-        )}
+        {background && <fog attach="fog" args={[background, 6, 12]} />}
 
         <ambientLight intensity={0.65} />
 
@@ -744,45 +631,28 @@ export const GarmentScene = forwardRef<
         <group>
           <Suspense fallback={null}>
             <HumanModel
+              modelId={design.modelId}
               pose={design.modelPose ?? "standing"}
-              onReady={() =>
-                wrap.current?.setAttribute(
-                  "data-scene-ready",
-                  "true",
-                )
-              }
+              onReady={() => wrap.current?.setAttribute("data-scene-ready", "true")}
             />
           </Suspense>
 
-          <group scale={[1.08, 0.88, 1.12]}>
-            <Underwear />
-
-            {showOutfit && (
+          {showGarment && (
+            <group scale={[1.08, 0.88, 1.12]}>
+              <Underwear />
               <AnimatedGarment d={design} />
-            )}
-          </group>
+            </group>
+          )}
         </group>
 
         {floor && (
-          <mesh
-            rotation={[-Math.PI / 2, 0, 0]}
-            receiveShadow
-          >
+          <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <circleGeometry args={[6, 64]} />
-            <meshStandardMaterial
-              color={floor}
-              roughness={0.9}
-            />
+            <meshStandardMaterial color={floor} roughness={0.9} />
           </mesh>
         )}
 
-        <ContactShadows
-          position={[0, 0.001, 0]}
-          opacity={0.6}
-          scale={4}
-          blur={2.4}
-          far={2}
-        />
+        <ContactShadows position={[0, 0.001, 0]} opacity={0.6} scale={4} blur={2.4} far={2} />
 
         <Rig ref={ref} />
       </Canvas>

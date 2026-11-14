@@ -1,22 +1,9 @@
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  Download,
-  FileJson,
-  Minus,
-  Plus,
-  RotateCcw,
-  Save,
-  Upload,
-} from "lucide-react";
+import { Download, FileJson, Minus, Plus, RotateCcw, Save, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  GarmentScene,
-  type SceneHandle,
-  type View,
-} from "@/components/studio/GarmentScene";
+import { GarmentScene, type SceneHandle, type View } from "@/components/studio/GarmentScene";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -43,16 +30,13 @@ import { actions } from "@/lib/store";
 import { FASHION_MODELS } from "@/lib/fashion-models";
 
 import femalePreview from "@/assets/models/female-preview.webp.asset.json";
+import malePreview from "@/assets/models/male-preview.webp.asset.json";
 
 export const Route = createFileRoute("/_dash/studio")({
   ssr: false,
 
-  validateSearch: (
-    s: Record<string, unknown>,
-  ): { id?: string } =>
-    typeof s["id"] === "string"
-      ? { id: s["id"] }
-      : {},
+  validateSearch: (s: Record<string, unknown>): { id?: string } =>
+    typeof s["id"] === "string" ? { id: s["id"] } : {},
 
   head: () => ({
     meta: [
@@ -72,8 +56,7 @@ export const Route = createFileRoute("/_dash/studio")({
       },
       {
         property: "og:description",
-        content:
-          "Create garment studies on a female 3D fashion model.",
+        content: "Create garment studies on a female 3D fashion model.",
       },
     ],
   }),
@@ -102,9 +85,7 @@ function Studio() {
       sessionStorage.removeItem(PENDING_KEY);
 
       try {
-        const parsed = designSchema.safeParse(
-          JSON.parse(pending),
-        );
+        const parsed = designSchema.safeParse(JSON.parse(pending));
 
         if (parsed.success) {
           return parsed.data;
@@ -161,9 +142,7 @@ function Studio() {
 
     try {
       const preview = scene.current?.snapshot();
-      const thumbnail = preview
-        ? await downscale(preview)
-        : undefined;
+      const thumbnail = preview ? await downscale(preview) : undefined;
 
       const saved = actions.saveDesign(
         designSchema.parse({
@@ -217,10 +196,7 @@ function Studio() {
       { type: "application/json" },
     );
 
-    download(
-      URL.createObjectURL(blob),
-      `${slug(design.name)}.styleverse.json`,
-    );
+    download(URL.createObjectURL(blob), `${slug(design.name)}.styleverse.json`);
   }
 
   function importJson(file?: File) {
@@ -228,9 +204,7 @@ function Studio() {
 
     file.text().then((content) => {
       try {
-        const parsed = designSchema.parse(
-          JSON.parse(content),
-        );
+        const parsed = designSchema.parse(JSON.parse(content));
 
         const fresh = newDesign(parsed.garment);
 
@@ -243,13 +217,9 @@ function Studio() {
 
         setDirty(true);
 
-        toast.success(
-          "Design opened — save to keep it",
-        );
+        toast.success("Design opened — save to keep it");
       } catch {
-        toast.error(
-          "That file isn't a STYLEVERSE design",
-        );
+        toast.error("That file isn't a STYLEVERSE design");
       }
     });
   }
@@ -258,9 +228,7 @@ function Studio() {
     if (!file) return;
 
     if (file.size > 1.5e6) {
-      toast.error(
-        "Please use an image under 1.5 MB",
-      );
+      toast.error("Please use an image under 1.5 MB");
       return;
     }
 
@@ -279,22 +247,15 @@ function Studio() {
   return (
     <div className="grid lg:h-[min(900px,calc(100vh-4rem))] lg:grid-cols-[1fr_360px]">
       <section className="relative h-[58vh] min-h-[380px] lg:h-full">
-        <GarmentScene
-          ref={scene}
-          design={design}
-        />
+        <GarmentScene ref={scene} design={design} />
 
         {/* Studio environment */}
         <div className="glass absolute bottom-3 left-3 flex gap-1 rounded-lg p-1">
           <Button
             variant="ghost"
             size="sm"
-            aria-pressed={
-              design.studioEnvironment !== "dark"
-            }
-            onClick={() =>
-              update({ studioEnvironment: "light" })
-            }
+            aria-pressed={design.studioEnvironment !== "dark"}
+            onClick={() => update({ studioEnvironment: "light" })}
           >
             Light
           </Button>
@@ -302,12 +263,8 @@ function Studio() {
           <Button
             variant="ghost"
             size="sm"
-            aria-pressed={
-              design.studioEnvironment === "dark"
-            }
-            onClick={() =>
-              update({ studioEnvironment: "dark" })
-            }
+            aria-pressed={design.studioEnvironment === "dark"}
+            onClick={() => update({ studioEnvironment: "dark" })}
           >
             Dark
           </Button>
@@ -315,15 +272,11 @@ function Studio() {
 
         {/* Camera views */}
         <div className="glass absolute left-3 top-3 flex flex-wrap gap-1 rounded-xl p-1">
-          {(
-            ["front", "back", "left", "right"] as View[]
-          ).map((view) => (
+          {(["front", "back", "left", "right"] as View[]).map((view) => (
             <Button
               variant="ghost"
               key={view}
-              onClick={() =>
-                scene.current?.setView(view)
-              }
+              onClick={() => scene.current?.setView(view)}
               className="rounded-lg px-3 py-1.5 text-xs capitalize hover:bg-secondary"
             >
               {view}
@@ -340,9 +293,7 @@ function Studio() {
               scene.current?.spin(next);
             }}
             className={`rounded-lg px-3 py-1.5 text-xs ${
-              spinning
-                ? "bg-accent"
-                : "hover:bg-secondary"
+              spinning ? "bg-accent" : "hover:bg-secondary"
             }`}
           >
             360°
@@ -354,9 +305,7 @@ function Studio() {
           <Button
             variant="ghost"
             aria-label="Zoom in"
-            onClick={() =>
-              scene.current?.zoom(0.8)
-            }
+            onClick={() => scene.current?.zoom(0.8)}
             className="grid size-8 place-items-center rounded-lg hover:bg-secondary"
           >
             <Plus className="size-4" />
@@ -365,9 +314,7 @@ function Studio() {
           <Button
             variant="ghost"
             aria-label="Zoom out"
-            onClick={() =>
-              scene.current?.zoom(1.25)
-            }
+            onClick={() => scene.current?.zoom(1.25)}
             className="grid size-8 place-items-center rounded-lg hover:bg-secondary"
           >
             <Minus className="size-4" />
@@ -376,9 +323,7 @@ function Studio() {
           <Button
             variant="ghost"
             aria-label="Reset camera"
-            onClick={() =>
-              scene.current?.reset()
-            }
+            onClick={() => scene.current?.reset()}
             className="grid size-8 place-items-center rounded-lg hover:bg-secondary"
           >
             <RotateCcw className="size-4" />
@@ -390,35 +335,21 @@ function Studio() {
       <aside className="space-y-6 overflow-y-auto border-l p-5">
         {/* Design management */}
         <div className="space-y-2">
-          <label
-            className="eyebrow"
-            htmlFor="dname"
-          >
+          <label className="eyebrow" htmlFor="dname">
             Design name
           </label>
 
           <input
             id="dname"
             value={design.name}
-            onChange={(event) =>
-              update({ name: event.target.value })
-            }
+            onChange={(event) => update({ name: event.target.value })}
             className="w-full rounded-lg border bg-secondary px-3 py-2 text-sm"
           />
 
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button
-              size="sm"
-              disabled={saving}
-              onClick={save}
-              className="bg-brand"
-            >
+            <Button size="sm" disabled={saving} onClick={save} className="bg-brand">
               <Save />
-              {saving
-                ? "Saving…"
-                : dirty
-                  ? "Save"
-                  : "Saved"}
+              {saving ? "Saving…" : dirty ? "Save" : "Saved"}
             </Button>
 
             <Button
@@ -457,20 +388,12 @@ function Studio() {
               Reset
             </Button>
 
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={exportPng}
-            >
+            <Button size="sm" variant="ghost" onClick={exportPng}>
               <Download />
               PNG
             </Button>
 
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={exportJson}
-            >
+            <Button size="sm" variant="ghost" onClick={exportJson}>
               <FileJson />
               File
             </Button>
@@ -478,69 +401,58 @@ function Studio() {
             <label className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-md px-3 text-xs hover:bg-secondary">
               <Upload className="size-3.5" />
               Open file
-
               <input
                 type="file"
                 accept=".json,application/json"
                 className="sr-only"
-                onChange={(event) =>
-                  importJson(event.target.files?.[0])
-                }
+                onChange={(event) => importJson(event.target.files?.[0])}
               />
             </label>
           </div>
         </div>
 
-        {/* Female fashion model */}
+        {/* Fashion model */}
         <Section title="Fashion model">
-          <div className="grid grid-cols-1 gap-2">
-            {FASHION_MODELS
-              .filter((model) => model.id === "female")
-              .map((model) => (
-                <div
+          <div className="grid grid-cols-2 gap-2">
+            {FASHION_MODELS.map((model) => {
+              const preview = model.id === "female" ? femalePreview : malePreview;
+              const selected = (design.modelId ?? "female") === model.id;
+
+              return (
+                <Button
                   key={model.id}
-                  className="overflow-hidden rounded-xl border border-primary bg-accent p-3"
+                  type="button"
+                  variant={selected ? "secondary" : "outline"}
+                  aria-pressed={selected}
+                  onClick={() => update({ modelId: model.id })}
+                  className={`h-auto min-w-0 flex-col overflow-hidden p-2 text-left ${selected ? "border-primary bg-accent" : ""}`}
                 >
                   <img
-                    src={femalePreview.url}
-                    alt={model.name}
-                    className="aspect-[4/3] w-full rounded-lg object-contain"
+                    src={preview.url}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-[4/3] w-full rounded-md object-contain"
                   />
-
-                  <div className="mt-3 space-y-1 text-center">
-                    <p className="text-sm font-medium">
-                      {model.name}
-                    </p>
-
-                    <p className="text-xs text-muted-foreground">
-                      {Math.round(model.height * 100)} cm
-                      {" · "}
-                      {model.build}
-                    </p>
-
-                    <p className="text-xs text-muted-foreground">
-                      {model.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                  <span className="w-full truncate text-xs font-semibold">{model.name}</span>
+                  <span className="w-full truncate text-[10px] text-muted-foreground">
+                    {Math.round(model.height * 100)} cm · {model.build}
+                  </span>
+                </Button>
+              );
+            })}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <Chip
               active={design.modelPose !== "runway"}
-              onClick={() =>
-                update({ modelPose: "standing" })
-              }
+              onClick={() => update({ modelPose: "standing" })}
             >
               Fitting pose
             </Chip>
 
             <Chip
               active={design.modelPose === "runway"}
-              onClick={() =>
-                update({ modelPose: "runway" })
-              }
+              onClick={() => update({ modelPose: "runway" })}
             >
               Model walk
             </Chip>
@@ -554,9 +466,7 @@ function Studio() {
               <Chip
                 key={garment}
                 active={design.garment === garment}
-                onClick={() =>
-                  update({ garment })
-                }
+                onClick={() => update({ garment })}
               >
                 {GARMENT_LABEL[garment]}
               </Chip>
@@ -569,13 +479,7 @@ function Studio() {
             min={0.85}
             max={1.25}
             onChange={(fit) => update({ fit })}
-            fmt={(value) =>
-              value < 0.95
-                ? "Slim"
-                : value > 1.1
-                  ? "Oversized"
-                  : "Regular"
-            }
+            fmt={(value) => (value < 0.95 ? "Slim" : value > 1.1 ? "Oversized" : "Regular")}
           />
 
           <Slider
@@ -583,12 +487,8 @@ function Studio() {
             value={design.length}
             min={0.8}
             max={1.2}
-            onChange={(length) =>
-              update({ length })
-            }
-            fmt={(value) =>
-              `${Math.round(value * 100)}%`
-            }
+            onChange={(length) => update({ length })}
+            fmt={(value) => `${Math.round(value * 100)}%`}
           />
         </Section>
 
@@ -599,12 +499,8 @@ function Studio() {
               {SLEEVES.map((sleeve) => (
                 <Chip
                   key={sleeve}
-                  active={
-                    (design.sleeve ?? "auto") === sleeve
-                  }
-                  onClick={() =>
-                    update({ sleeve })
-                  }
+                  active={(design.sleeve ?? "auto") === sleeve}
+                  onClick={() => update({ sleeve })}
                 >
                   {sleeve}
                 </Chip>
@@ -615,12 +511,8 @@ function Studio() {
               {COLLARS.map((collar) => (
                 <Chip
                   key={collar}
-                  active={
-                    (design.collar ?? "auto") === collar
-                  }
-                  onClick={() =>
-                    update({ collar })
-                  }
+                  active={(design.collar ?? "auto") === collar}
+                  onClick={() => update({ collar })}
                 >
                   {collar}
                 </Chip>
@@ -632,28 +524,17 @@ function Studio() {
         {/* Garment parts */}
         <Section title="Garment part">
           <div className="grid grid-cols-3 gap-1.5">
-            {(Object.keys(PART_LABEL) as PartId[]).map(
-              (key) => (
-                <Chip
-                  key={key}
-                  active={part === key}
-                  onClick={() => setPart(key)}
-                >
-                  {PART_LABEL[key]}
-                </Chip>
-              ),
-            )}
+            {(Object.keys(PART_LABEL) as PartId[]).map((key) => (
+              <Chip key={key} active={part === key} onClick={() => setPart(key)}>
+                {PART_LABEL[key]}
+              </Chip>
+            ))}
           </div>
         </Section>
 
         {/* Colour editor */}
         <Section title="Colour">
-          <ColorEditor
-            value={p.color}
-            onChange={(color) =>
-              updatePart({ color })
-            }
-          />
+          <ColorEditor value={p.color} onChange={(color) => updatePart({ color })} />
         </Section>
 
         {/* Material editor */}
@@ -663,9 +544,7 @@ function Studio() {
               <Chip
                 key={material}
                 active={p.material === material}
-                onClick={() =>
-                  updatePart({ material })
-                }
+                onClick={() => updatePart({ material })}
               >
                 {material}
               </Chip>
@@ -676,70 +555,46 @@ function Studio() {
         {/* Pattern editor */}
         <Section title="Pattern">
           <div className="grid grid-cols-3 gap-1.5">
-            {PATTERNS
-              .filter((pattern) => pattern !== "custom")
-              .map((pattern) => (
-                <Chip
-                  key={pattern}
-                  active={p.pattern === pattern}
-                  onClick={() =>
-                    updatePart({ pattern })
-                  }
-                >
-                  {pattern}
-                </Chip>
-              ))}
+            {PATTERNS.filter((pattern) => pattern !== "custom").map((pattern) => (
+              <Chip
+                key={pattern}
+                active={p.pattern === pattern}
+                onClick={() => updatePart({ pattern })}
+              >
+                {pattern}
+              </Chip>
+            ))}
 
             <label
               className={`flex cursor-pointer items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs ${
-                p.pattern === "custom"
-                  ? "border-primary bg-accent"
-                  : "hover:bg-secondary"
+                p.pattern === "custom" ? "border-primary bg-accent" : "hover:bg-secondary"
               }`}
             >
               <Upload className="size-3" />
               Upload
-
               <input
                 type="file"
                 accept="image/*"
                 className="sr-only"
-                onChange={(event) =>
-                  onUpload(event.target.files?.[0])
-                }
+                onChange={(event) => onUpload(event.target.files?.[0])}
               />
             </label>
           </div>
 
-          {p.pattern !== "solid" &&
-            p.pattern !== "custom" && (
-              <div className="pt-2">
-                <p className="eyebrow mb-2">
-                  Pattern colour
-                </p>
+          {p.pattern !== "solid" && p.pattern !== "custom" && (
+            <div className="pt-2">
+              <p className="eyebrow mb-2">Pattern colour</p>
 
-                <ColorEditor
-                  value={p.accent}
-                  onChange={(accent) =>
-                    updatePart({ accent })
-                  }
-                  compact
-                />
-              </div>
-            )}
+              <ColorEditor value={p.accent} onChange={(accent) => updatePart({ accent })} compact />
+            </div>
+          )}
         </Section>
       </aside>
     </div>
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
       <p className="eyebrow">{title}</p>
@@ -792,9 +647,7 @@ function Slider({
     <label className="block text-xs">
       <span className="flex justify-between text-muted-foreground">
         <span>{label}</span>
-        <span className="text-foreground">
-          {fmt(value)}
-        </span>
+        <span className="text-foreground">{fmt(value)}</span>
       </span>
 
       <input
@@ -803,9 +656,7 @@ function Slider({
         max={max}
         step={0.01}
         value={value}
-        onChange={(event) =>
-          onChange(+event.target.value)
-        }
+        onChange={(event) => onChange(+event.target.value)}
         className="mt-2 w-full accent-[var(--primary)]"
       />
     </label>
@@ -840,9 +691,7 @@ function ColorEditor({
             onClick={() => onChange(color)}
             style={{ background: color }}
             className={`size-7 rounded-full border-2 ${
-              value.toLowerCase() === color
-                ? "border-foreground"
-                : "border-transparent"
+              value.toLowerCase() === color ? "border-foreground" : "border-transparent"
             }`}
           />
         ))}
@@ -851,9 +700,7 @@ function ColorEditor({
           type="color"
           aria-label="Pick custom colour"
           value={value}
-          onChange={(event) =>
-            onChange(event.target.value)
-          }
+          onChange={(event) => onChange(event.target.value)}
           className="size-7 cursor-pointer rounded-full bg-transparent"
         />
       </div>
@@ -883,41 +730,28 @@ function ColorEditor({
       </div>
 
       {!compact &&
-        (["R", "G", "B"] as const).map(
-          (channel, index) => (
-            <label
-              key={channel}
-              className="flex items-center gap-2 text-xs"
-            >
-              <span className="w-3 text-muted-foreground">
-                {channel}
-              </span>
+        (["R", "G", "B"] as const).map((channel, index) => (
+          <label key={channel} className="flex items-center gap-2 text-xs">
+            <span className="w-3 text-muted-foreground">{channel}</span>
 
-              <input
-                type="range"
-                min={0}
-                max={255}
-                value={rgb[index]}
-                className="w-full accent-[var(--primary)]"
-                onChange={(event) => {
-                  const next = [...rgb] as [
-                    number,
-                    number,
-                    number,
-                  ];
+            <input
+              type="range"
+              min={0}
+              max={255}
+              value={rgb[index]}
+              className="w-full accent-[var(--primary)]"
+              onChange={(event) => {
+                const next = [...rgb] as [number, number, number];
 
-                  next[index] = +event.target.value;
+                next[index] = +event.target.value;
 
-                  onChange(rgbToHex(...next));
-                }}
-              />
+                onChange(rgbToHex(...next));
+              }}
+            />
 
-              <span className="w-8 text-right font-mono">
-                {rgb[index]}
-              </span>
-            </label>
-          ),
-        )}
+            <span className="w-8 text-right font-mono">{rgb[index]}</span>
+          </label>
+        ))}
     </div>
   );
 }
@@ -930,10 +764,7 @@ function download(url: string, name: string) {
   anchor.click();
 
   if (url.startsWith("blob:")) {
-    setTimeout(
-      () => URL.revokeObjectURL(url),
-      1000,
-    );
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }
 
@@ -963,10 +794,7 @@ function downscale(src: string): Promise<string> {
         return;
       }
 
-      const scale = Math.max(
-        width / image.width,
-        height / image.height,
-      );
+      const scale = Math.max(width / image.width, height / image.height);
 
       context.drawImage(
         image,
@@ -976,9 +804,7 @@ function downscale(src: string): Promise<string> {
         image.height * scale,
       );
 
-      resolve(
-        canvas.toDataURL("image/jpeg", 0.8),
-      );
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
     };
 
     image.onerror = () => resolve("");
