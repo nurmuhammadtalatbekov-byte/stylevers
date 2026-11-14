@@ -5,23 +5,15 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 
-import maleAsset from "@/assets/models/male-fashion.glb.asset.json";
 import {
   modelFor,
-  type ModelId,
   type ModelPose,
 } from "@/lib/fashion-models";
 
-// GitHub public/models ichidagi haqiqiy ayol modeli
+// Faqat ayol modeli
 const FEMALE_MODEL_URL = "/models/woman-base-character-1.glb";
 
-export const MODEL_ASSETS = {
-  female: FEMALE_MODEL_URL,
-  male: maleAsset.url,
-};
-
 type HumanModelProps = {
-  modelId: ModelId;
   pose: ModelPose;
   onReady: () => void;
 };
@@ -61,16 +53,16 @@ function improveMaterials(root: THREE.Object3D) {
 }
 
 export function HumanModel({
-  modelId,
   pose,
   onReady,
 }: HumanModelProps) {
-  const model = modelFor(modelId);
+  const model = modelFor("female");
+
   const group = useRef<THREE.Group>(null);
   const readyRef = useRef(false);
 
   const { scene, animations } = useGLTF(
-    MODEL_ASSETS[modelId],
+    FEMALE_MODEL_URL,
     false,
     true
   );
@@ -101,7 +93,10 @@ export function HumanModel({
     return root;
   }, [scene, model.height]);
 
-  const { actions, names } = useAnimations(animations, group);
+  const { actions, names } = useAnimations(
+    animations,
+    group
+  );
 
   useEffect(() => {
     Object.values(actions).forEach((action) => {
@@ -113,7 +108,9 @@ export function HumanModel({
         name.toLowerCase().includes("walk")
       );
 
-      const action = walkName ? actions[walkName] : undefined;
+      const action = walkName
+        ? actions[walkName]
+        : undefined;
 
       if (action) {
         action.reset();
@@ -132,7 +129,7 @@ export function HumanModel({
 
   useEffect(() => {
     readyRef.current = false;
-  }, [modelId]);
+  }, []);
 
   useFrame(() => {
     if (!readyRef.current) {
@@ -148,6 +145,5 @@ export function HumanModel({
   );
 }
 
-// Model fayllarini oldindan yuklash
-useGLTF.preload(MODEL_ASSETS.female);
-useGLTF.preload(MODEL_ASSETS.male);
+// Ayol modelini oldindan yuklash
+useGLTF.preload(FEMALE_MODEL_URL);
