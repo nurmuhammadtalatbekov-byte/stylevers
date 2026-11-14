@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
-const FEMALE_MODEL_URL = "/models/woman-base-character-1.glb";
+
 import maleAsset from "@/assets/models/male-fashion.glb.asset.json";
 import {
   modelFor,
@@ -12,8 +12,11 @@ import {
   type ModelPose,
 } from "@/lib/fashion-models";
 
+// GitHub public/models ichidagi haqiqiy ayol modeli
+const FEMALE_MODEL_URL = "/models/woman-base-character-1.glb";
+
 export const MODEL_ASSETS = {
-  female: femaleAsset.url,
+  female: FEMALE_MODEL_URL,
   male: maleAsset.url,
 };
 
@@ -145,5 +148,6 @@ export function HumanModel({
   );
 }
 
+// Model fayllarini oldindan yuklash
 useGLTF.preload(MODEL_ASSETS.female);
 useGLTF.preload(MODEL_ASSETS.male);
