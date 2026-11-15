@@ -9,9 +9,17 @@ function Portfolio() {
   return (
     <SimplePage title="My Portfolio">
       {designs.length === 0 ? (
-        <Empty title="No saved designs yet"><Link to="/studio" className="text-primary underline">Create one in the 3D studio</Link></Empty>
+        <Empty title="No saved designs yet">
+          <Link to="/studio" className="text-primary underline">
+            Create one in the 3D studio
+          </Link>
+        </Empty>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{designs.map((d) => <DesignCard key={d.id} d={d} />)}</div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {designs.map((d) => (
+            <DesignCard key={d.id} d={d} />
+          ))}
+        </div>
       )}
     </SimplePage>
   );

@@ -1,5 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, Box, FolderHeart, Home, Images, LayoutGrid, Menu, Settings, Sparkles, Store, UserRound, X } from "lucide-react";
+import {
+  Bell,
+  Box,
+  FolderHeart,
+  Home,
+  Images,
+  LayoutGrid,
+  Menu,
+  Settings,
+  Sparkles,
+  Store,
+  UserRound,
+  X,
+} from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
@@ -34,7 +47,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <nav className="flex flex-col gap-1" aria-label="Main">
       {NAV.map(({ to, label, icon: Icon }) => (
         <Link
-          key={to} to={to} onClick={() => setOpen(false)}
+          key={to}
+          to={to}
+          onClick={() => setOpen(false)}
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           activeProps={{ className: "bg-accent text-foreground" }}
         >
@@ -51,14 +66,32 @@ export function AppShell({ children }: { children: ReactNode }) {
         {nav}
         <div className="glass mt-auto rounded-xl p-4 text-xs text-muted-foreground">
           <p className="mb-1 font-semibold text-foreground">STYLEVERSE Atelier</p>
-          <Link to="/settings" className="text-primary">Workspace & cloud backups</Link>
+          <Link to="/settings" className="text-primary">
+            Workspace & cloud backups
+          </Link>
         </div>
       </aside>
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur lg:hidden" onClick={() => setOpen(false)}>
-          <aside className="glass flex h-full w-72 flex-col gap-8 p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between"><Logo /><Button variant="ghost" size="icon" aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></Button></div>
+        <div
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur lg:hidden"
+          onClick={() => setOpen(false)}
+        >
+          <aside
+            className="glass flex h-full w-72 flex-col gap-8 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <Logo />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Close menu"
+                onClick={() => setOpen(false)}
+              >
+                <X className="size-5" />
+              </Button>
+            </div>
             {nav}
           </aside>
         </div>
@@ -66,21 +99,45 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="glass sticky top-0 z-40 flex h-16 items-center gap-3 border-x-0 border-t-0 px-4 md:px-6">
-          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}><Menu className="size-5" /></Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            aria-label="Open menu"
+            onClick={() => setOpen(true)}
+          >
+            <Menu className="size-5" />
+          </Button>
           <h1 className="truncate font-display text-base font-semibold">{current}</h1>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative">
-              <Button variant="ghost" size="icon" aria-label="Notifications" onClick={() => setNotif((v) => !v)} className="grid size-9 place-items-center rounded-full hover:bg-secondary">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Notifications"
+                onClick={() => setNotif((v) => !v)}
+                className="grid size-9 place-items-center rounded-full hover:bg-secondary"
+              >
                 <Bell className="size-4" />
               </Button>
               {notif && (
                 <div className="glass absolute right-0 top-11 w-72 rounded-xl p-4 text-sm">
                   <p className="eyebrow mb-2">Notifications</p>
-                  <p className="text-muted-foreground">{designs.length ? `You have ${designs.length} saved design${designs.length > 1 ? "s" : ""}.` : "Welcome to STYLEVERSE — open the studio to start your first design."}</p>
+                  <p className="text-muted-foreground">
+                    {designs.length
+                      ? `You have ${designs.length} saved design${designs.length > 1 ? "s" : ""}.`
+                      : "Welcome to STYLEVERSE — open the studio to start your first design."}
+                  </p>
                 </div>
               )}
             </div>
-            <Link to="/portfolio" aria-label="Profile" className="grid size-9 place-items-center rounded-full bg-brand text-primary-foreground"><UserRound className="size-4" /></Link>
+            <Link
+              to="/portfolio"
+              aria-label="Profile"
+              className="grid size-9 place-items-center rounded-full bg-brand text-primary-foreground"
+            >
+              <UserRound className="size-4" />
+            </Link>
           </div>
         </header>
         <main className="flex-1">{children}</main>

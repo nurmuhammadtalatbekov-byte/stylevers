@@ -23,10 +23,17 @@ export const generateBrief = createServerFn({ method: "POST" })
     if (!key) return { error: "AI is not configured." };
     const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "fetch" },
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": key,
+        "X-Lovable-AIG-SDK": "fetch",
+      },
       body: JSON.stringify({
         model: "openai/gpt-6-astra",
-        input: [{ role: "system", content: SYSTEM }, { role: "user", content: data.concept }],
+        input: [
+          { role: "system", content: SYSTEM },
+          { role: "user", content: data.concept },
+        ],
         reasoning: { effort: "low" },
         store: false,
         stream: true,
@@ -38,12 +45,18 @@ export const generateBrief = createServerFn({ method: "POST" })
       if (res.status === 429) return { error: "Too many requests — please try again in a moment." };
       if (res.status === 402) return { error: "AI credits are used up for this workspace." };
       let msg = "The AI could not create a brief right now.";
-      try { msg = JSON.parse(t)?.error?.message ?? JSON.parse(t)?.message ?? msg; } catch { /* keep */ }
+      try {
+        msg = JSON.parse(t)?.error?.message ?? JSON.parse(t)?.message ?? msg;
+      } catch {
+        /* keep */
+      }
       return { error: msg };
     }
     const reader = res.body.getReader();
     const dec = new TextDecoder();
-    let buf = "", out = "", refused = false;
+    let buf = "",
+      out = "",
+      refused = false;
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -59,10 +72,14 @@ export const generateBrief = createServerFn({ method: "POST" })
           const ev = JSON.parse(payload);
           if (ev.type === "response.output_text.delta") out += ev.delta ?? "";
           else if (ev.type === "response.refusal.delta") refused = true;
-          else if (ev.type === "response.failed" || ev.type === "error") return { error: ev.response?.error?.message ?? ev.message ?? "Generation failed." };
-        } catch { /* partial */ }
+          else if (ev.type === "response.failed" || ev.type === "error")
+            return { error: ev.response?.error?.message ?? ev.message ?? "Generation failed." };
+        } catch {
+          /* partial */
+        }
       }
     }
-    if (refused || !out.trim()) return { error: "The AI declined to write a brief for this concept." };
+    if (refused || !out.trim())
+      return { error: "The AI declined to write a brief for this concept." };
     return { brief: out.trim() };
   });

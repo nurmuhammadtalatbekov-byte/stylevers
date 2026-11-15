@@ -21,14 +21,26 @@ export const Route = createFileRoute("/_dash/dashboard")({
 
 function Dashboard() {
   const { designs, collections } = useStore();
-  return <SimplePage title="Your atelier">
-    <div className="flex flex-wrap items-center gap-4 border-b pb-6">
-      <span className="text-sm text-muted-foreground">{designs.length} designs · {collections.length} collections</span>
-      <Button asChild><Link to="/studio">New design</Link></Button>
-      <Button asChild variant="outline"><Link to="/ai">Create a brief</Link></Button>
-    </div>
-    <h3 className="font-display text-2xl">Recent designs</h3>
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{designs.slice(0, 6).map((d) => <DesignCard key={d.id} d={d} />)}</div>
-    {!designs.length && <p className="text-sm text-muted-foreground">No saved designs yet.</p>}
-  </SimplePage>;
+  return (
+    <SimplePage title="Your atelier">
+      <div className="flex flex-wrap items-center gap-4 border-b pb-6">
+        <span className="text-sm text-muted-foreground">
+          {designs.length} designs · {collections.length} collections
+        </span>
+        <Button asChild>
+          <Link to="/studio">New design</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/ai">Create a brief</Link>
+        </Button>
+      </div>
+      <h3 className="font-display text-2xl">Recent designs</h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {designs.slice(0, 6).map((d) => (
+          <DesignCard key={d.id} d={d} />
+        ))}
+      </div>
+      {!designs.length && <p className="text-sm text-muted-foreground">No saved designs yet.</p>}
+    </SimplePage>
+  );
 }

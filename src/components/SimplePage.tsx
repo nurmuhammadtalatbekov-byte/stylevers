@@ -8,7 +8,9 @@ export function SimplePage({ title, children }: { title: string; children?: Reac
       {children ?? (
         <div className="glass rounded-2xl p-8 text-sm text-muted-foreground">
           This section is not finished yet.{" "}
-          <Link to="/studio" className="text-primary underline">Open the 3D studio</Link>
+          <Link to="/studio" className="text-primary underline">
+            Open the 3D studio
+          </Link>
         </div>
       )}
     </div>

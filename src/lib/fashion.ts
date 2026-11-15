@@ -1,16 +1,52 @@
 // Pure data + rules for garments, materials and patterns (no React, no three.js).
 import type { ModelId, ModelPose } from "./fashion-models";
 
-export const GARMENTS = ["tshirt", "shirt", "hoodie", "jacket", "dress", "trousers", "skirt", "coat"] as const;
+export const GARMENTS = [
+  "tshirt",
+  "shirt",
+  "hoodie",
+  "jacket",
+  "dress",
+  "trousers",
+  "skirt",
+  "coat",
+] as const;
 export type GarmentType = (typeof GARMENTS)[number];
 export const GARMENT_LABEL: Record<GarmentType, string> = {
-  tshirt: "T-shirt", shirt: "Shirt", hoodie: "Hoodie", jacket: "Jacket",
-  dress: "Dress", trousers: "Trousers", skirt: "Skirt", coat: "Coat",
+  tshirt: "T-shirt",
+  shirt: "Shirt",
+  hoodie: "Hoodie",
+  jacket: "Jacket",
+  dress: "Dress",
+  trousers: "Trousers",
+  skirt: "Skirt",
+  coat: "Coat",
 };
 
-export const MATERIALS = ["cotton", "denim", "leather", "silk", "wool", "satin", "linen", "velvet", "chiffon", "organza"] as const;
+export const MATERIALS = [
+  "cotton",
+  "denim",
+  "leather",
+  "silk",
+  "wool",
+  "satin",
+  "linen",
+  "velvet",
+  "chiffon",
+  "organza",
+] as const;
 export type MaterialType = (typeof MATERIALS)[number];
-export const MATERIAL_PROPS: Record<MaterialType, { roughness: number; metalness: number; sheen: number; clearcoat: number; weave: number; opacity?: number }> = {
+export const MATERIAL_PROPS: Record<
+  MaterialType,
+  {
+    roughness: number;
+    metalness: number;
+    sheen: number;
+    clearcoat: number;
+    weave: number;
+    opacity?: number;
+  }
+> = {
   cotton: { roughness: 0.9, metalness: 0, sheen: 0.3, clearcoat: 0, weave: 0.08 },
   denim: { roughness: 0.85, metalness: 0, sheen: 0.1, clearcoat: 0, weave: 0.22 },
   leather: { roughness: 0.38, metalness: 0.05, sheen: 0, clearcoat: 0.45, weave: 0.03 },
@@ -20,7 +56,14 @@ export const MATERIAL_PROPS: Record<MaterialType, { roughness: number; metalness
   linen: { roughness: 0.95, metalness: 0, sheen: 0.2, clearcoat: 0, weave: 0.16 },
   velvet: { roughness: 0.95, metalness: 0, sheen: 1, clearcoat: 0, weave: 0.12 },
   chiffon: { roughness: 0.6, metalness: 0, sheen: 0.4, clearcoat: 0, weave: 0.04, opacity: 0.65 },
-  organza: { roughness: 0.35, metalness: 0, sheen: 0.7, clearcoat: 0.15, weave: 0.05, opacity: 0.48 },
+  organza: {
+    roughness: 0.35,
+    metalness: 0,
+    sheen: 0.7,
+    clearcoat: 0.15,
+    weave: 0.05,
+    opacity: 0.48,
+  },
 };
 
 export const PATTERNS = ["solid", "stripes", "floral", "geometric", "abstract", "custom"] as const;
@@ -28,13 +71,22 @@ export type PatternType = (typeof PATTERNS)[number];
 
 export const SLEEVES = ["auto", "none", "short", "elbow", "long"] as const;
 export type SleeveStyle = (typeof SLEEVES)[number];
-export const SLEEVE_LEN: Record<Exclude<SleeveStyle, "auto">, number> = { none: 0, short: 0.2, elbow: 0.36, long: 0.58 };
+export const SLEEVE_LEN: Record<Exclude<SleeveStyle, "auto">, number> = {
+  none: 0,
+  short: 0.2,
+  elbow: 0.36,
+  long: 0.58,
+};
 export const COLLARS = ["auto", "none", "crew", "stand", "hood"] as const;
 export type CollarStyle = (typeof COLLARS)[number];
 export const TOPS: readonly string[] = ["tshirt", "shirt", "hoodie", "jacket", "coat"];
 
 export type PartId = "body" | "sleeves" | "trim";
-export const PART_LABEL: Record<PartId, string> = { body: "Main body", sleeves: "Sleeves / legs", trim: "Trim & details" };
+export const PART_LABEL: Record<PartId, string> = {
+  body: "Main body",
+  sleeves: "Sleeves / legs",
+  trim: "Trim & details",
+};
 
 export interface PartStyle {
   color: string;
@@ -61,7 +113,18 @@ export interface Design {
   updatedAt: number;
 }
 
-export const PALETTE = ["#0d0d10", "#f4f2ee", "#7c3aed", "#22d3ee", "#1e3a8a", "#9f1239", "#d4a373", "#3f6212", "#6b7280", "#f59e0b"];
+export const PALETTE = [
+  "#0d0d10",
+  "#f4f2ee",
+  "#7c3aed",
+  "#22d3ee",
+  "#1e3a8a",
+  "#9f1239",
+  "#d4a373",
+  "#3f6212",
+  "#6b7280",
+  "#f59e0b",
+];
 
 export function defaultParts(): Record<PartId, PartStyle> {
   return {
@@ -73,7 +136,10 @@ export function defaultParts(): Record<PartId, PartStyle> {
 
 export function newDesign(garment: GarmentType = "hoodie"): Design {
   return {
-    id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now()),
+    id:
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : String(Date.now()),
     name: "Untitled design",
     garment,
     fit: 1,
@@ -92,6 +158,8 @@ export function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 export function rgbToHex(r: number, g: number, b: number) {
-  return "#" + [r, g, b].map((v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0")).join("");
+  return (
+    "#" + [r, g, b].map((v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0")).join("")
+  );
 }
 export const isHex = (s: string) => /^#[0-9a-f]{6}$/i.test(s);

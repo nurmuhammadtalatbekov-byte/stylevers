@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import * as THREE from "three";
 
@@ -54,11 +53,7 @@ export function Underwear() {
       </mesh>
 
       {/* Tursikning old qismi */}
-      <mesh
-        position={[0, 0.965, 0.105]}
-        scale={[0.19, 0.115, 0.045]}
-        material={fabric}
-      >
+      <mesh position={[0, 0.965, 0.105]} scale={[0.19, 0.115, 0.045]} material={fabric}>
         <sphereGeometry args={[1, 32, 24]} />
       </mesh>
 

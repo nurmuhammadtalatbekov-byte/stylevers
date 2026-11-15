@@ -83,9 +83,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "STYLEVERSE — 3D Fashion Design Studio" },
-      { name: "description", content: "Design, customize and experience fashion in an immersive 3D studio." },
+      {
+        name: "description",
+        content: "Design, customize and experience fashion in an immersive 3D studio.",
+      },
       { property: "og:title", content: "STYLEVERSE — 3D Fashion Design Studio" },
-      { property: "og:description", content: "Design, customize and experience fashion in an immersive 3D studio." },
+      {
+        property: "og:description",
+        content: "Design, customize and experience fashion in an immersive 3D studio.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
