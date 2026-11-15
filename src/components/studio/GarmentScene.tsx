@@ -4,6 +4,7 @@ import {
   forwardRef,
   Suspense,
   useEffect,
+  useLayoutEffect,
   useState,
   useImperativeHandle,
   useMemo,
@@ -441,10 +442,16 @@ function AnimatedGarment({
   const garmentRef = useRef<THREE.Group>(null);
   const startedAt = useRef<number | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const garment = garmentRef.current;
     if (!garment) return;
 
+    if (replayKey === 0) {
+      garment.visible = false;
+      return;
+    }
+
+    garment.visible = true;
     garment.scale.setScalar(0.001);
     garment.position.y = 0.2;
     startedAt.current = null;
@@ -463,7 +470,11 @@ function AnimatedGarment({
     garment.position.y = THREE.MathUtils.lerp(0.2, 0, eased);
   });
 
-  return <group ref={garmentRef}>{children}</group>;
+  return (
+    <group ref={garmentRef} visible={replayKey > 0} scale={0.001}>
+      {children}
+    </group>
+  );
 }
 
 /* ---------- CAMERA RIG ---------- */

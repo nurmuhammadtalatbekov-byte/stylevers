@@ -103,6 +103,7 @@ function Studio() {
   const [saving, setSaving] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [dressingKey, setDressingKey] = useState(0);
+  const [undressed, setUndressed] = useState(true);
 
   useEffect(() => {
     const saved = id ? actions.getDesign(id) : undefined;
@@ -246,7 +247,12 @@ function Studio() {
   return (
     <div className="grid lg:h-[min(900px,calc(100vh-4rem))] lg:grid-cols-[1fr_360px]">
       <section className="relative h-[58vh] min-h-[380px] lg:h-full">
-        <GarmentScene ref={scene} design={design} dressingKey={dressingKey} />
+        <GarmentScene
+          ref={scene}
+          design={design}
+          showOutfit={!undressed}
+          dressingKey={dressingKey}
+        />
 
         {/* Studio environment */}
         <div className="glass absolute bottom-3 left-3 flex flex-wrap gap-1 rounded-lg p-1">
@@ -273,10 +279,11 @@ function Studio() {
             size="sm"
             onClick={() => {
               if (design.modelPose === "runway") update({ modelPose: "standing" });
+              setUndressed(false);
               setDressingKey((key) => key + 1);
             }}
           >
-            Replay try-on
+            {undressed ? "Dress model" : "Replay try-on"}
           </Button>
         </div>
 
@@ -472,11 +479,19 @@ function Studio() {
         {/* Garment selection */}
         <Section title="Garment">
           <div className="grid grid-cols-4 gap-1.5">
+            <Chip active={undressed} onClick={() => setUndressed(true)}>
+              Undressed
+            </Chip>
+
             {GARMENTS.map((garment) => (
               <Chip
                 key={garment}
-                active={design.garment === garment}
-                onClick={() => update({ garment })}
+                active={!undressed && design.garment === garment}
+                onClick={() => {
+                  update({ garment });
+                  setUndressed(false);
+                  setDressingKey((key) => key + 1);
+                }}
               >
                 {GARMENT_LABEL[garment]}
               </Chip>
