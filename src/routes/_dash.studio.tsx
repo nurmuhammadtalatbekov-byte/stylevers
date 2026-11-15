@@ -147,7 +147,6 @@ function Studio() {
       const saved = actions.saveDesign(
         designSchema.parse({
           ...design,
-          modelId: "female",
           preview: thumbnail,
         }),
       );
@@ -212,7 +211,6 @@ function Studio() {
           ...fresh,
           ...parsed,
           id: newDesign().id,
-          modelId: "female",
         });
 
         setDirty(true);
