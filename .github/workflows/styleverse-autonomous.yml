@@ -1,0 +1,129 @@
+name: STYLEVERSE Autonomous Developer
+
+on:
+  push:
+    branches: [codex-development]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: styleverse-autonomous-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan-and-code:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex-development
+          persist-credentials: false
+
+      - name: Set up Node.js and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run Codex on the fashion studio
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          prompt-file: .github/prompts/styleverse-autonomous.md
+          output-file: /tmp/styleverse-codex-report.md
+
+      - name: Prepare patch artifact
+        if: always()
+        run: |
+          git add -N --all
+          git diff --binary -- . ':!public/models/**' > /tmp/styleverse-autonomous.patch
+
+      - name: Upload proposed patch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: styleverse-autonomous-patch
+          path: /tmp/styleverse-autonomous.patch
+          if-no-files-found: error
+          retention-days: 1
+
+  verify-and-push:
+    needs: plan-and-code
+    if: needs.plan-and-code.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex-development
+
+      - name: Set up Node.js and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+
+      - name: Download proposed patch
+        uses: actions/download-artifact@v4
+        with:
+          name: styleverse-autonomous-patch
+          path: /tmp/styleverse-autonomous
+
+      - name: Apply proposed patch
+        id: patch
+        run: |
+          if [ ! -s /tmp/styleverse-autonomous/styleverse-autonomous.patch ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git apply --check /tmp/styleverse-autonomous/styleverse-autonomous.patch
+          git apply /tmp/styleverse-autonomous/styleverse-autonomous.patch
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        if: steps.patch.outputs.changed == 'true'
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Run lint
+        if: steps.patch.outputs.changed == 'true'
+        run: pnpm lint
+
+      - name: Run tests
+        if: steps.patch.outputs.changed == 'true'
+        run: pnpm exec vitest run --pool=threads --maxWorkers=1 --no-file-parallelism
+
+      - name: Build project
+        if: steps.patch.outputs.changed == 'true'
+        run: pnpm build
+
+      - name: Commit and push verified change
+        if: steps.patch.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git commit -m "Autonomous STYLEVERSE studio improvement"
+          git push origin HEAD:codex-development
