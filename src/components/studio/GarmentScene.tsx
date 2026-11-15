@@ -18,6 +18,7 @@ type OrbitImpl = ComponentRef<typeof OrbitControls>;
 import { MATERIAL_PROPS, SLEEVE_LEN, type Design, type PartStyle } from "@/lib/fashion";
 
 import { HumanModel } from "./HumanModel";
+import { ImportedGarment } from "./ImportedGarment";
 import { Underwear } from "./Underwear";
 
 export type View = "front" | "back" | "left" | "right";
@@ -190,11 +191,62 @@ function Fabric({ style }: { style: PartStyle }) {
 
 /* ---------- GEOMETRY HELPERS ---------- */
 
-function lathe(points: [number, number][], segs = 48) {
-  return new THREE.LatheGeometry(
-    points.map(([r, y]) => new THREE.Vector2(r, y)),
-    segs,
-  );
+type GarmentProfilePoint = [width: number, depth: number, height: number];
+
+function garmentShell(profile: GarmentProfilePoint[], segments = 64): THREE.BufferGeometry {
+  const rings: GarmentProfilePoint[] = [];
+
+  for (let i = 0; i < profile.length - 1; i++) {
+    const start = profile[i];
+    const end = profile[i + 1];
+    if (!start || !end) continue;
+
+    for (let step = 0; step < 4; step++) {
+      const t = step / 4;
+      rings.push([
+        THREE.MathUtils.lerp(start[0], end[0], t),
+        THREE.MathUtils.lerp(start[1], end[1], t),
+        THREE.MathUtils.lerp(start[2], end[2], t),
+      ]);
+    }
+  }
+
+  const last = profile.at(-1);
+  if (last) rings.push(last);
+
+  const positions = new Float32Array(rings.length * (segments + 1) * 3);
+  const uvs = new Float32Array(rings.length * (segments + 1) * 2);
+  const indices: number[] = [];
+
+  rings.forEach(([width, depth, height], ring) => {
+    const hemWeight = THREE.MathUtils.smoothstep(height, 0.35, 0.9);
+
+    for (let segment = 0; segment <= segments; segment++) {
+      const angle = (segment / segments) * Math.PI * 2;
+      const pleat =
+        1 +
+        (1 - hemWeight) *
+          (0.018 * Math.sin(angle * 8 + height * 18) + 0.007 * Math.sin(angle * 15 - height * 31));
+      const vertex = ring * (segments + 1) + segment;
+      positions[vertex * 3] = Math.cos(angle) * width * pleat;
+      positions[vertex * 3 + 1] = height;
+      positions[vertex * 3 + 2] = Math.sin(angle) * depth * pleat;
+      uvs[vertex * 2] = segment / segments;
+      uvs[vertex * 2 + 1] = ring / Math.max(rings.length - 1, 1);
+
+      if (ring < rings.length - 1 && segment < segments) {
+        const nextRing = vertex + segments + 1;
+        indices.push(vertex, nextRing, vertex + 1, vertex + 1, nextRing, nextRing + 1);
+      }
+    }
+  });
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 /* ---------- GARMENT TOP ---------- */
@@ -229,48 +281,25 @@ function Top({
   const flare = bottom < 0.8 ? 0.12 * (0.8 - bottom) * 3 : 0;
 
   const body = useMemo(() => {
-    const pts: [number, number][] = [];
-
-    const prof: [number, number][] = [
-      [0.105, 1.5],
-      [0.2, 1.43],
-      [0.17, 1.3],
-      [0.16, 1.12],
-      [0.185, 1.0],
-      [0.18, 0.9],
-      [0.18, 0.7],
-      [0.18, 0.5],
-      [0.18, 0.3],
+    const base: GarmentProfilePoint[] = [
+      [0.18, 0.1, 0.78],
+      [0.175, 0.095, 0.96],
+      [0.155, 0.09, 1.12],
+      [0.17, 0.1, 1.25],
+      [0.215, 0.115, 1.37],
+      [0.16, 0.09, 1.45],
+      [0.105, 0.075, 1.5],
     ];
-
-    for (const [r, y] of prof) {
-      if (y >= by) pts.push([r + 0.018, y]);
-    }
-
-    const last = pts[pts.length - 1] ?? [0.2, by];
-
-    pts.push([last[0] + flare + 0.01, by]);
-
-    const geometry = lathe(pts);
-    geometry.scale(1, 1, 0.95);
-
-    const positions = geometry.attributes["position"];
-
-    if (positions) {
-      for (let i = 0; i < positions.count; i++) {
-        const y = positions.getY(i);
-        const x = positions.getX(i);
-        const z = positions.getZ(i);
-
-        const fold = 1 + 0.016 * Math.sin(y * 44 + Math.atan2(z, x) * 5);
-
-        positions.setXYZ(i, x * fold, y, z * fold);
-      }
-
-      geometry.computeVertexNormals();
-    }
-
-    return geometry;
+    const upper = base.findIndex((point) => point[2] >= by);
+    const lowerPoint = base[Math.max(upper - 1, 0)];
+    const upperPoint = base[Math.max(upper, 0)];
+    const t = lowerPoint && upperPoint ? (by - lowerPoint[2]) / (upperPoint[2] - lowerPoint[2]) : 0;
+    const hem: GarmentProfilePoint = [
+      THREE.MathUtils.lerp(lowerPoint?.[0] ?? 0.18, upperPoint?.[0] ?? 0.18, t) + flare,
+      THREE.MathUtils.lerp(lowerPoint?.[1] ?? 0.1, upperPoint?.[1] ?? 0.1, t) + flare * 0.7,
+      by,
+    ];
+    return garmentShell([hem, ...base.filter((point) => point[2] > by)]);
   }, [by, flare]);
 
   const sl = sleeve * Math.min(d.length, 1.1);
@@ -316,11 +345,22 @@ function Top({
       </mesh>
 
       {open && (
-        <mesh position={[0, (1.47 + by) / 2, 0.165 + flare / 2]}>
-          <boxGeometry args={[0.03, 1.47 - by, 0.02]} />
+        <mesh position={[0, (1.47 + by) / 2, 0.145 + flare / 2]}>
+          <boxGeometry args={[0.012, 1.47 - by, 0.012]} />
           <Fabric style={d.parts.trim} />
         </mesh>
       )}
+
+      {open &&
+        Array.from({ length: 6 }, (_, index) => {
+          const y = 1.36 - index * 0.14;
+          return (
+            <mesh key={y} position={[0.018, y, 0.15 + flare / 2]}>
+              <sphereGeometry args={[0.012, 12, 8]} />
+              <Fabric style={d.parts.trim} />
+            </mesh>
+          );
+        })}
 
       {hood && (
         <mesh position={[0, 1.53, -0.095]} rotation={[-0.35, 0, 0]} castShadow>
@@ -341,33 +381,35 @@ function Lower({ d, kind }: { d: Design; kind: "trousers" | "skirt" | "dress" })
     if (kind === "skirt") {
       const by = 1.0 - 0.42 * d.length;
 
-      return lathe([
-        [0.185, 1.0],
-        [0.2, 0.9],
-        [0.25, by + 0.1],
-        [0.28, by],
+      return garmentShell([
+        [0.29, 0.19, by],
+        [0.275, 0.18, by + 0.06],
+        [0.24, 0.16, 0.78],
+        [0.205, 0.13, 0.9],
+        [0.19, 0.115, 1.0],
       ]);
     }
 
     if (kind === "dress") {
       const by = 1.5 - 1.0 * d.length;
 
-      return lathe([
-        [0.105, 1.5],
-        [0.2, 1.43],
-        [0.17, 1.3],
-        [0.16, 1.12],
-        [0.19, 1.0],
-        [0.24, 0.85],
-        [0.34, by + 0.1],
-        [0.37, by],
+      return garmentShell([
+        [0.37, 0.235, by],
+        [0.33, 0.215, by + 0.12],
+        [0.28, 0.18, 0.82],
+        [0.205, 0.13, 0.96],
+        [0.165, 0.1, 1.12],
+        [0.18, 0.11, 1.28],
+        [0.215, 0.125, 1.37],
+        [0.16, 0.09, 1.45],
+        [0.105, 0.075, 1.5],
       ]);
     }
 
-    return lathe([
-      [0.185, 1.0],
-      [0.19, 0.9],
-      [0.17, 0.82],
+    return garmentShell([
+      [0.19, 0.12, 0.82],
+      [0.19, 0.12, 0.9],
+      [0.205, 0.135, 1.0],
     ]);
   }, [kind, d.length]);
 
@@ -547,8 +589,9 @@ export const GarmentScene = forwardRef<
     design: Design;
     showOutfit?: boolean;
     dressingKey?: number;
+    garmentModelUrl?: string | undefined;
   }
->(function GarmentScene({ design, showOutfit = true, dressingKey = 0 }, ref) {
+>(function GarmentScene({ design, showOutfit = true, dressingKey = 0, garmentModelUrl }, ref) {
   const wrap = useRef<HTMLDivElement>(null);
   const [colors, setColors] = useState<Record<string, string>>({});
 
@@ -665,10 +708,16 @@ export const GarmentScene = forwardRef<
 
           {showGarment && (
             <group scale={[1.08, 0.88, 1.12]}>
-              <AnimatedGarment d={design} replayKey={dressingKey}>
-                <Underwear />
-                <Garment d={design} />
-              </AnimatedGarment>
+              <Suspense fallback={null}>
+                <AnimatedGarment d={design} replayKey={dressingKey}>
+                  <Underwear />
+                  {garmentModelUrl ? (
+                    <ImportedGarment src={garmentModelUrl} design={design} />
+                  ) : (
+                    <Garment d={design} />
+                  )}
+                </AnimatedGarment>
+              </Suspense>
             </group>
           )}
         </group>

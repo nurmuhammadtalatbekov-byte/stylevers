@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { GarmentScene, type SceneHandle, type View } from "@/components/studio/GarmentScene";
+import { ImportedGarment } from "@/components/studio/ImportedGarment";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -104,6 +105,14 @@ function Studio() {
   const [spinning, setSpinning] = useState(false);
   const [dressingKey, setDressingKey] = useState(0);
   const [undressed, setUndressed] = useState(true);
+  const [garmentModelUrl, setGarmentModelUrl] = useState<string>();
+
+  useEffect(
+    () => () => {
+      if (garmentModelUrl) URL.revokeObjectURL(garmentModelUrl);
+    },
+    [garmentModelUrl],
+  );
 
   useEffect(() => {
     const saved = id ? actions.getDesign(id) : undefined;
@@ -138,6 +147,19 @@ function Studio() {
   };
 
   const p = design.parts[part];
+
+  function importGarmentModel(file?: File) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".glb") || file.size > 20 * 1024 * 1024) {
+      toast.error("Choose a GLB garment model under 20 MB");
+      return;
+    }
+
+    setGarmentModelUrl(URL.createObjectURL(file));
+    setUndressed(false);
+    setDressingKey((key) => key + 1);
+    toast.success("3D garment loaded for this fitting preview");
+  }
 
   async function save() {
     setSaving(true);
@@ -252,6 +274,7 @@ function Studio() {
           design={design}
           showOutfit={!undressed}
           dressingKey={dressingKey}
+          garmentModelUrl={garmentModelUrl}
         />
 
         {/* Studio environment */}
@@ -478,6 +501,30 @@ function Studio() {
 
         {/* Garment selection */}
         <Section title="Garment">
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed p-3 text-xs text-muted-foreground hover:bg-secondary">
+            <Upload className="size-4" />
+            {garmentModelUrl ? "Replace imported GLB" : "Import a garment GLB (up to 20 MB)"}
+            <input
+              type="file"
+              accept=".glb,model/gltf-binary"
+              className="sr-only"
+              onChange={(event) => importGarmentModel(event.target.files?.[0])}
+            />
+          </label>
+
+          {garmentModelUrl && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setGarmentModelUrl(undefined);
+                setUndressed(true);
+              }}
+            >
+              Remove imported garment
+            </Button>
+          )}
+
           <div className="grid grid-cols-4 gap-1.5">
             <Chip active={undressed} onClick={() => setUndressed(true)}>
               Undressed
@@ -488,6 +535,7 @@ function Studio() {
                 key={garment}
                 active={!undressed && design.garment === garment}
                 onClick={() => {
+                  setGarmentModelUrl(undefined);
                   update({ garment });
                   setUndressed(false);
                   setDressingKey((key) => key + 1);
