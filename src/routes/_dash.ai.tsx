@@ -53,6 +53,15 @@ function AiPage() {
     }
   }
 
+  async function copyBrief() {
+    try {
+      await navigator.clipboard.writeText(brief);
+      toast.success("Copied");
+    } catch {
+      toast.error("Clipboard access is unavailable in this browser");
+    }
+  }
+
   return (
     <SimplePage title="AI Design Brief">
       <div className="space-y-4 border-b pb-6">
@@ -82,14 +91,7 @@ function AiPage() {
         <div aria-busy={loading} className="space-y-5">
           <div className="flex items-center justify-between">
             <p className="eyebrow">Design brief</p>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                navigator.clipboard.writeText(brief);
-                toast.success("Copied");
-              }}
-            >
+            <Button size="sm" variant="ghost" onClick={() => void copyBrief()}>
               <Copy /> Copy
             </Button>
           </div>

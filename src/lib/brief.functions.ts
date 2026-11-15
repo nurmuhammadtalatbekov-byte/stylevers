@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const Input = z.object({ concept: z.string().trim().min(5).max(2000) });
+const MAX_BRIEF_CHARACTERS = 30_000;
 
 const SYSTEM = `You are a senior fashion design director. Turn the designer's rough concept into a polished studio design brief in Markdown with these sections:
 ## Concept title
@@ -70,8 +71,16 @@ export const generateBrief = createServerFn({ method: "POST" })
         if (payload === "[DONE]") continue;
         try {
           const ev = JSON.parse(payload);
-          if (ev.type === "response.output_text.delta") out += ev.delta ?? "";
-          else if (ev.type === "response.refusal.delta") refused = true;
+          if (ev.type === "response.output_text.delta") {
+            if (typeof ev.delta === "string") out += ev.delta;
+            if (out.length > MAX_BRIEF_CHARACTERS) {
+              void reader.cancel().catch(() => undefined);
+              return {
+                error:
+                  "The generated brief is too long. Please simplify the concept and try again.",
+              };
+            }
+          } else if (ev.type === "response.refusal.delta") refused = true;
           else if (ev.type === "response.failed" || ev.type === "error")
             return { error: ev.response?.error?.message ?? ev.message ?? "Generation failed." };
         } catch {
