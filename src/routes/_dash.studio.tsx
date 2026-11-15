@@ -102,6 +102,7 @@ function Studio() {
   const [dirty, setDirty] = useState(!id);
   const [saving, setSaving] = useState(false);
   const [spinning, setSpinning] = useState(false);
+  const [dressingKey, setDressingKey] = useState(0);
 
   useEffect(() => {
     const saved = id ? actions.getDesign(id) : undefined;
@@ -245,10 +246,10 @@ function Studio() {
   return (
     <div className="grid lg:h-[min(900px,calc(100vh-4rem))] lg:grid-cols-[1fr_360px]">
       <section className="relative h-[58vh] min-h-[380px] lg:h-full">
-        <GarmentScene ref={scene} design={design} />
+        <GarmentScene ref={scene} design={design} dressingKey={dressingKey} />
 
         {/* Studio environment */}
-        <div className="glass absolute bottom-3 left-3 flex gap-1 rounded-lg p-1">
+        <div className="glass absolute bottom-3 left-3 flex flex-wrap gap-1 rounded-lg p-1">
           <Button
             variant="ghost"
             size="sm"
@@ -265,6 +266,17 @@ function Studio() {
             onClick={() => update({ studioEnvironment: "dark" })}
           >
             Dark
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (design.modelPose === "runway") update({ modelPose: "standing" });
+              setDressingKey((key) => key + 1);
+            }}
+          >
+            Replay try-on
           </Button>
         </div>
 

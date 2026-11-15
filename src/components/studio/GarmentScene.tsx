@@ -429,27 +429,41 @@ function Garment({ d }: { d: Design }) {
 
 /* ---------- GARMENT APPEAR ANIMATION ---------- */
 
-function AnimatedGarment({ d }: { d: Design }) {
+function AnimatedGarment({
+  d,
+  replayKey,
+  children,
+}: {
+  d: Design;
+  replayKey: number;
+  children: React.ReactNode;
+}) {
   const garmentRef = useRef<THREE.Group>(null);
+  const startedAt = useRef<number | null>(null);
 
   useEffect(() => {
-    garmentRef.current?.scale.setScalar(0.001);
-  }, [d.garment]);
+    const garment = garmentRef.current;
+    if (!garment) return;
 
-  useFrame((_, delta) => {
-    if (!garmentRef.current) return;
+    garment.scale.setScalar(0.001);
+    garment.position.y = 0.2;
+    startedAt.current = null;
+  }, [d.garment, replayKey]);
 
-    const current = garmentRef.current.scale.x;
-    const next = THREE.MathUtils.damp(current, 1, 4, delta);
+  useFrame((state) => {
+    const garment = garmentRef.current;
+    if (!garment) return;
 
-    garmentRef.current.scale.setScalar(next);
+    startedAt.current ??= state.clock.elapsedTime;
+    const elapsed = state.clock.elapsedTime - startedAt.current;
+    const progress = THREE.MathUtils.clamp(elapsed / 1.65, 0, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+
+    garment.scale.setScalar(THREE.MathUtils.lerp(0.001, 1, eased));
+    garment.position.y = THREE.MathUtils.lerp(0.2, 0, eased);
   });
 
-  return (
-    <group ref={garmentRef}>
-      <Garment d={d} />
-    </group>
-  );
+  return <group ref={garmentRef}>{children}</group>;
 }
 
 /* ---------- CAMERA RIG ---------- */
@@ -521,8 +535,9 @@ export const GarmentScene = forwardRef<
   {
     design: Design;
     showOutfit?: boolean;
+    dressingKey?: number;
   }
->(function GarmentScene({ design, showOutfit = true }, ref) {
+>(function GarmentScene({ design, showOutfit = true, dressingKey = 0 }, ref) {
   const wrap = useRef<HTMLDivElement>(null);
   const [colors, setColors] = useState<Record<string, string>>({});
 
@@ -639,8 +654,10 @@ export const GarmentScene = forwardRef<
 
           {showGarment && (
             <group scale={[1.08, 0.88, 1.12]}>
-              <Underwear />
-              <AnimatedGarment d={design} />
+              <AnimatedGarment d={design} replayKey={dressingKey}>
+                <Underwear />
+                <Garment d={design} />
+              </AnimatedGarment>
             </group>
           )}
         </group>
