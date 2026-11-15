@@ -104,8 +104,8 @@ function Studio() {
   const [dirty, setDirty] = useState(!id);
   const [saving, setSaving] = useState(false);
   const [spinning, setSpinning] = useState(false);
-  const [dressingKey, setDressingKey] = useState(0);
-  const [undressed, setUndressed] = useState(true);
+  const [dressingKey, setDressingKey] = useState(id ? 1 : 0);
+  const [undressed, setUndressed] = useState(!id && !design.garmentAssetId);
   const [garmentModelUrl, setGarmentModelUrl] = useState<string>();
 
   useEffect(

@@ -391,18 +391,14 @@ function Lower({ d, kind }: { d: Design; kind: "trousers" | "skirt" | "dress" })
     }
 
     if (kind === "dress") {
-      const by = 1.5 - 1.0 * d.length;
+      const by = THREE.MathUtils.clamp(1.0 - 0.7 * d.length, 0.3, 0.46);
 
       return garmentShell([
-        [0.37, 0.235, by],
-        [0.33, 0.215, by + 0.12],
-        [0.28, 0.18, 0.82],
-        [0.205, 0.13, 0.96],
-        [0.165, 0.1, 1.12],
-        [0.18, 0.11, 1.28],
-        [0.215, 0.125, 1.37],
-        [0.16, 0.09, 1.45],
-        [0.105, 0.075, 1.5],
+        [0.38, 0.245, by],
+        [0.34, 0.22, by + 0.12],
+        [0.29, 0.19, 0.72],
+        [0.23, 0.15, 0.86],
+        [0.19, 0.12, 1.0],
       ]);
     }
 
@@ -457,7 +453,12 @@ function Garment({ d }: { d: Design }) {
       return <Top d={d} sleeve={0.6} bottom={0.42} collar open />;
 
     case "dress":
-      return <Lower d={d} kind="dress" />;
+      return (
+        <group>
+          <Top d={d} sleeve={0.2} bottom={0.95} />
+          <Lower d={d} kind="dress" />
+        </group>
+      );
 
     case "skirt":
       return <Lower d={d} kind="skirt" />;

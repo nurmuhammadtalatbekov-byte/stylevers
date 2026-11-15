@@ -79,7 +79,7 @@ export const SLEEVE_LEN: Record<Exclude<SleeveStyle, "auto">, number> = {
 };
 export const COLLARS = ["auto", "none", "crew", "stand", "hood"] as const;
 export type CollarStyle = (typeof COLLARS)[number];
-export const TOPS: readonly string[] = ["tshirt", "shirt", "hoodie", "jacket", "coat"];
+export const TOPS: readonly string[] = ["tshirt", "shirt", "hoodie", "jacket", "coat", "dress"];
 
 export type PartId = "body" | "sleeves" | "trim";
 export const PART_LABEL: Record<PartId, string> = {

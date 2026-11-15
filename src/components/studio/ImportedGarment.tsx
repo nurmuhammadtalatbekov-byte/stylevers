@@ -40,5 +40,9 @@ export function ImportedGarment({ src, design }: { src: string; design: Design }
         ? 0.78
         : 0.88;
 
-  return <primitive object={garment} position={[0, baseHeight, 0]} scale={design.fit} />;
+  return (
+    <group position={[0, baseHeight, 0]} scale={design.fit}>
+      <primitive object={garment} />
+    </group>
+  );
 }
