@@ -37,13 +37,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Prepare restricted Codex user
+        run: |
+          sudo adduser --system --home /home/codex --shell /bin/bash --group codex
+          sudo usermod -a -G runner codex
+          sudo chown -R runner:codex "$GITHUB_WORKSPACE"
+          sudo chmod -R g+rwX "$GITHUB_WORKSPACE"
+          sudo find "$GITHUB_WORKSPACE" -type d -exec chmod g+s {} +
+
       - name: Run Codex on the fashion studio
         id: codex
         uses: openai/codex-action@v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           permission-profile: ":workspace"
-          safety-strategy: drop-sudo
+          safety-strategy: unprivileged-user
+          codex-user: codex
           prompt-file: .github/prompts/styleverse-autonomous.md
           output-file: /tmp/styleverse-codex-report.md
 
