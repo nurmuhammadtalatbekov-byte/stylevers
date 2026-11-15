@@ -4,6 +4,28 @@ import { designSchema } from "@/lib/design-schema";
 import { actions } from "@/lib/store";
 
 describe("Studio design rules", () => {
+  it("keeps valid local records when other saved records are malformed", () => {
+    const valid = newDesign();
+    localStorage.setItem(
+      "styleverse:v1",
+      JSON.stringify({
+        designs: [valid, { ...valid, id: "bad", garment: "unknown" }],
+        collections: [
+          { id: "good", name: "Editorial", createdAt: Date.now() },
+          { id: "bad", name: "", createdAt: Date.now() },
+        ],
+        likes: ["p1", 4],
+        favorites: ["look-1"],
+      }),
+    );
+
+    const workspace = actions.snapshot();
+    expect(workspace.designs.map((design) => design.id)).toEqual([valid.id]);
+    expect(workspace.collections.map((collection) => collection.id)).toEqual(["good"]);
+    expect(workspace.likes).toEqual(["p1"]);
+    expect(workspace.favorites).toEqual(["look-1"]);
+  });
+
   it.each([
     "silk",
     "satin",
@@ -35,6 +57,21 @@ describe("Studio design rules", () => {
       ).name,
     ).toBe("Edited silk study");
   });
+  it("records rename and collection changes for cloud merge timestamps", async () => {
+    const design = newDesign();
+    actions.saveDesign(design);
+    const originalTime = actions.getDesign(design.id)?.updatedAt ?? 0;
+    const collection = actions.createCollection("Runway study");
+
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    actions.renameDesign(design.id, "Runway coat");
+    const renamedTime = actions.getDesign(design.id)?.updatedAt ?? 0;
+    expect(renamedTime).toBeGreaterThan(originalTime);
+
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    actions.moveToCollection(design.id, collection.id);
+    expect(actions.getDesign(design.id)?.updatedAt).toBeGreaterThan(renamedTime);
+  });
   it("keeps existing designs when restoring a cloud backup", () => {
     const local = newDesign();
     actions.saveDesign(local);
@@ -53,14 +90,14 @@ describe("Studio design rules", () => {
     expect(actions.getDesign(b.id)?.id).toBe(b.id);
   });
   it("toggles saved pieces and inspiration in device persistence", () => {
-    actions.toggle("likes", "p1");
-    actions.toggle("favorites", "look-1");
-    expect(actions.snapshot().likes).toContain("p1");
-    expect(actions.snapshot().favorites).toContain("look-1");
+    actions.toggle("likes", "toggle-test-piece");
+    actions.toggle("favorites", "toggle-test-look");
+    expect(actions.snapshot().likes).toContain("toggle-test-piece");
+    expect(actions.snapshot().favorites).toContain("toggle-test-look");
 
-    actions.toggle("likes", "p1");
-    actions.toggle("favorites", "look-1");
-    expect(actions.snapshot().likes).not.toContain("p1");
-    expect(actions.snapshot().favorites).not.toContain("look-1");
+    actions.toggle("likes", "toggle-test-piece");
+    actions.toggle("favorites", "toggle-test-look");
+    expect(actions.snapshot().likes).not.toContain("toggle-test-piece");
+    expect(actions.snapshot().favorites).not.toContain("toggle-test-look");
   });
 });
