@@ -27,6 +27,7 @@ import {
 } from "@/lib/fashion";
 
 import { designSchema } from "@/lib/design-schema";
+import { loadGarmentAsset, saveGarmentAsset } from "@/lib/garment-assets";
 import { actions } from "@/lib/store";
 import { FASHION_MODELS } from "@/lib/fashion-models";
 
@@ -115,6 +116,26 @@ function Studio() {
   );
 
   useEffect(() => {
+    const assetId = design.garmentAssetId;
+    if (!assetId) return;
+
+    let cancelled = false;
+    void loadGarmentAsset(assetId)
+      .then((asset) => {
+        if (cancelled) return;
+        if (asset) setGarmentModelUrl(URL.createObjectURL(asset));
+        else toast.info("This design’s imported GLB is unavailable on this device");
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("Could not load this design’s saved garment model");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [design.garmentAssetId]);
+
+  useEffect(() => {
     const saved = id ? actions.getDesign(id) : undefined;
 
     if (saved && saved.id !== design.id) {
@@ -148,17 +169,22 @@ function Studio() {
 
   const p = design.parts[part];
 
-  function importGarmentModel(file?: File) {
+  async function importGarmentModel(file?: File) {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith(".glb") || file.size > 20 * 1024 * 1024) {
       toast.error("Choose a GLB garment model under 20 MB");
       return;
     }
 
-    setGarmentModelUrl(URL.createObjectURL(file));
-    setUndressed(false);
-    setDressingKey((key) => key + 1);
-    toast.success("3D garment loaded for this fitting preview");
+    try {
+      const assetId = await saveGarmentAsset(file);
+      update({ garmentAssetId: assetId });
+      setUndressed(false);
+      setDressingKey((key) => key + 1);
+      toast.success("3D garment saved on this device and loaded for fitting");
+    } catch {
+      toast.error("Could not save this GLB in browser storage");
+    }
   }
 
   async function save() {
@@ -519,6 +545,7 @@ function Studio() {
               onClick={() => {
                 setGarmentModelUrl(undefined);
                 setUndressed(true);
+                update({ garmentAssetId: undefined });
               }}
             >
               Remove imported garment
@@ -536,7 +563,7 @@ function Studio() {
                 active={!undressed && design.garment === garment}
                 onClick={() => {
                   setGarmentModelUrl(undefined);
-                  update({ garment });
+                  update({ garment, garmentAssetId: undefined });
                   setUndressed(false);
                   setDressingKey((key) => key + 1);
                 }}

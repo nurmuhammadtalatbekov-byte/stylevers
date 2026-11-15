@@ -29,4 +29,9 @@ describe("Fashion model persistence", () => {
   it("rejects unknown models instead of loading a missing asset", () => {
     expect(designSchema.safeParse({ ...newDesign(), modelId: "missing" }).success).toBe(false);
   });
+  it("persists a device-local GLB reference with the portable design", () => {
+    const design = designSchema.parse({ ...newDesign(), garmentAssetId: "glb-asset-123" });
+    actions.saveDesign(design);
+    expect(actions.getDesign(design.id)?.garmentAssetId).toBe("glb-asset-123");
+  });
 });

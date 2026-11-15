@@ -23,6 +23,7 @@ export const designSchema = z.object({
   sleeve: z.enum(SLEEVES).optional(),
   collar: z.enum(COLLARS).optional(),
   modelId: z.enum(MODEL_IDS).optional(),
+  garmentAssetId: z.string().min(1).max(200).optional(),
   modelPose: z.enum(MODEL_POSES).optional(),
   studioEnvironment: z.enum(STUDIO_ENVIRONMENTS).optional(),
   collectionId: z.string().optional(),

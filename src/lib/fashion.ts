@@ -106,6 +106,7 @@ export interface Design {
   sleeve?: SleeveStyle | undefined;
   collar?: CollarStyle | undefined;
   modelId?: ModelId | undefined;
+  garmentAssetId?: string | undefined;
   modelPose?: ModelPose | undefined;
   studioEnvironment?: "light" | "dark" | undefined;
   collectionId?: string | undefined;
