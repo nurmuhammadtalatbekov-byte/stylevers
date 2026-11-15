@@ -11,12 +11,13 @@
 - [x] Pass the existing regression suite and production build; smoke-check core routes over HTTP.
 - [x] Clear project-wide formatting lint errors while leaving auto-generated Supabase clients untouched.
 - [x] Bound streamed AI brief output and report clipboard failures instead of showing a false success message.
+- [x] Confirm the configured Supabase REST endpoint is reachable and the `fashion_workspaces` table is exposed to the project API.
 
 ## Remaining
 
 - [ ] Verify garment fit against the rigged bodies. Current garment geometry is not rigged; runway therefore shows only the human model.
 - [ ] Exercise save, reopen, refresh, import/export and collection flows in a real browser on desktop and mobile.
-- [ ] Verify cloud backup and restore against the connected Supabase environment, including an authenticated session.
+- [ ] Verify cloud backup and non-destructive restore in an authenticated user session; anonymous API connectivity and table availability are confirmed.
 - [ ] Verify AI brief loading, refusal, copy and long-response behavior in a real browser; code-level handling is in place and the raw Responses client and safe Markdown rendering are preserved.
 - [ ] Improve the studio's initial-load performance. The current studio client chunk is about 1.06 MB before gzip.
 - [ ] Decide whether the marketplace remains a lookbook prototype or gains real inventory and checkout; it currently has no purchase flow.
