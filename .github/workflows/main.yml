@@ -1,9 +1,8 @@
-
 name: STYLEVERSE Automatic Build
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex-development]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -29,6 +28,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Run tests
+        run: pnpm exec vitest run --pool=threads --maxWorkers=1 --no-file-parallelism
 
       - name: Build project
         run: pnpm build
